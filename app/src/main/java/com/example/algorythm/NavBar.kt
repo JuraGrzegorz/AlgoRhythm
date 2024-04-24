@@ -1,6 +1,7 @@
 package com.example.algorythm
 
 
+import Search
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -29,58 +30,79 @@ import com.example.algorythm.ui.theme.MainTheme
 @Composable
 fun ScaffoldExample() {
     val navigationController = rememberNavController()
-    val context = LocalContext.current.applicationContext
+    LocalContext.current.applicationContext
     val selected = remember {
         mutableStateOf(Icons.Default.Home)
     }
 
-
     Scaffold(
         bottomBar = {
-            BottomAppBar(containerColor = MainTheme,modifier = Modifier.height(55.dp)) {
-                IconButton(onClick = {
-                    selected.value = Icons.Default.Home
-                    navigationController.navigate(Screens.Home.screen){
-                        popUpTo(0)
-                    }
-                },
-                    modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(26.dp),
-                        tint = if(selected.value == Icons.Default.Home) Color.White else BackgroundDarkGray)
+            BottomAppBar(containerColor = MainTheme, modifier = Modifier.height(55.dp)) {
+                IconButton(
+                    onClick = {
+                        selected.value = Icons.Default.Home
+                        navigationController.navigate(Screens.Home.screen) {
+                            popUpTo(0)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Default.Home,
+                        contentDescription = null,
+                        modifier = Modifier.size(26.dp),
+                        tint = if (selected.value == Icons.Default.Home) Color.White else BackgroundDarkGray
+                    )
 
                 }
 
-                IconButton(onClick = {
-                    selected.value = Icons.Default.Search
-                    navigationController.navigate(Screens.Search.screen){
-                        popUpTo(0)
-                    }
-                },
-                    modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(26.dp),
-                        tint = if(selected.value == Icons.Default.Search) Color.White else BackgroundDarkGray)
+                IconButton(
+                    onClick = {
+                        selected.value = Icons.Default.Search
+                        navigationController.navigate(Screens.Search.screen) {
+                            popUpTo(0)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = null,
+                        modifier = Modifier.size(26.dp),
+                        tint = if (selected.value == Icons.Default.Search) Color.White else BackgroundDarkGray
+                    )
 
                 }
 
-                IconButton(onClick = {
-                    selected.value = Icons.Default.Person
-                    navigationController.navigate(Screens.Profile.screen){
-                        popUpTo(0)
-                    }
-                },
-                    modifier = Modifier.weight(1f)) {
-                    Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(26.dp),
-                        tint = if(selected.value == Icons.Default.Person) Color.White else BackgroundDarkGray)
+                IconButton(
+                    onClick = {
+                        selected.value = Icons.Default.Person
+                        navigationController.navigate(Screens.Profile.screen) {
+                            popUpTo(0)
+                        }
+                    },
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        Icons.Default.Person,
+                        contentDescription = null,
+                        modifier = Modifier.size(26.dp),
+                        tint = if (selected.value == Icons.Default.Person) Color.White else BackgroundDarkGray
+                    )
 
                 }
 
             }
-                    },
+        },
     ) { innerPadding ->
-        NavHost(navController = navigationController, startDestination = Screens.Home.screen, modifier = Modifier.padding(innerPadding)){
-            composable(Screens.Home.screen){ Home()}
-            composable(Screens.Search.screen){ Search() }
-            composable(Screens.Profile.screen){ Profile() }
+        NavHost(
+            navController = navigationController,
+            startDestination = Screens.Home.screen,
+            modifier = Modifier.padding(innerPadding)
+        ) {
+            composable(Screens.Home.screen) { Home() }
+            composable(Screens.Search.screen) { Search() }
+            composable(Screens.Profile.screen) { Profile() }
         }
     }
 }

@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.algorythm.ui.theme.BackgroundDarkGray
-import com.example.algorythm.ui.theme.MainTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
@@ -42,7 +41,7 @@ fun Home() {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(100.dp) // Adjust height as needed
+                .height(100.dp)
                 .padding(16.dp)
                 .background(Color.Black, RoundedCornerShape(16.dp))
                 .align(Alignment.BottomCenter)
