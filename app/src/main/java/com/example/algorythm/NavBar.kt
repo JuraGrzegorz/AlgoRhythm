@@ -12,7 +12,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -30,7 +29,8 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.algorythm.ui.theme.Purple80
+import com.example.algorythm.ui.theme.BackgroundDarkGray
+import com.example.algorythm.ui.theme.MainTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,12 +43,13 @@ fun ScaffoldExample() {
         mutableStateOf(Icons.Default.Home)
     }
 
+
     Scaffold(
         topBar = {
             TopAppBar(
                 colors = topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MainTheme,
+                    titleContentColor = Color.White
                 ),
                 title = {
                     Text("Top app bar")
@@ -56,7 +57,7 @@ fun ScaffoldExample() {
             )
         },
         bottomBar = {
-            BottomAppBar(containerColor = Purple80) {
+            BottomAppBar(containerColor = MainTheme) {
                 IconButton(onClick = {
                     selected.value = Icons.Default.Home
                     navigationController.navigate(Screens.Home.screen){
@@ -65,7 +66,7 @@ fun ScaffoldExample() {
                 },
                     modifier = Modifier.weight(1f)) {
                     Icon(Icons.Default.Home, contentDescription = null, modifier = Modifier.size(26.dp),
-                        tint = if(selected.value == Icons.Default.Home) Color.White else Color.DarkGray)
+                        tint = if(selected.value == Icons.Default.Home) Color.White else BackgroundDarkGray)
 
                 }
 
@@ -77,7 +78,7 @@ fun ScaffoldExample() {
                 },
                     modifier = Modifier.weight(1f)) {
                     Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(26.dp),
-                        tint = if(selected.value == Icons.Default.Search) Color.White else Color.DarkGray)
+                        tint = if(selected.value == Icons.Default.Search) Color.White else BackgroundDarkGray)
 
                 }
 
@@ -89,7 +90,7 @@ fun ScaffoldExample() {
                 },
                     modifier = Modifier.weight(1f)) {
                     Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(26.dp),
-                        tint = if(selected.value == Icons.Default.Person) Color.White else Color.DarkGray)
+                        tint = if(selected.value == Icons.Default.Person) Color.White else BackgroundDarkGray)
 
                 }
 

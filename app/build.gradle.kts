@@ -93,4 +93,5 @@ dependencies {
     implementation("androidx.compose.runtime:runtime-livedata")
     // Optional - Integration with RxJava
     implementation("androidx.compose.runtime:runtime-rxjava2")
+    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
 }
