@@ -1,5 +1,6 @@
 package com.example.algorythm
 
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
@@ -8,14 +9,10 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.BottomAppBar
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.topAppBarColors
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -32,7 +29,6 @@ import androidx.navigation.compose.rememberNavController
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ScaffoldExample() {
     var presses by remember { mutableIntStateOf(0) }
@@ -43,21 +39,9 @@ fun ScaffoldExample() {
         mutableStateOf(Icons.Default.Home)
     }
 
-
     Scaffold(
-        topBar = {
-            TopAppBar(
-                colors = topAppBarColors(
-                    containerColor = MainTheme,
-                    titleContentColor = Color.White
-                ),
-                title = {
-                    Text("Top app bar")
-                }
-            )
-        },
         bottomBar = {
-            BottomAppBar(containerColor = MainTheme) {
+            BottomAppBar(containerColor = MainTheme,modifier = Modifier.height(55.dp)) {
                 IconButton(onClick = {
                     selected.value = Icons.Default.Home
                     navigationController.navigate(Screens.Home.screen){

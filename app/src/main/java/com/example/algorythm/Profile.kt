@@ -19,7 +19,7 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 fun Profile(){
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(
-        color = MainTheme
+        color = Color.Black
     )
     Box(modifier = Modifier.fillMaxSize() .background(BackgroundDarkGray)){
         Column(modifier = Modifier
