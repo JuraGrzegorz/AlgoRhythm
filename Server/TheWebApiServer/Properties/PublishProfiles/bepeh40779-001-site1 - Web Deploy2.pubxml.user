@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+Ten plik jest wykorzystywany przez proces publikowania/pakowania projektu internetowego. Możesz dostosować zachowanie tego procesu
+ poprzez edycję tego pliku MSBuild. Aby dowiedzieć się więcej o tym działaniu, odwiedź stronę https://go.microsoft.com/fwlink/?LinkID=208121. 
+-->
+<Project>
+  <PropertyGroup>
+    <TimeStampOfAssociatedLegacyPublishXmlFile />
+    <EncryptedPassword />
+    <History>True|2024-04-21T19:21:38.0814039Z;False|2024-04-21T21:21:13.6770776+02:00;True|2024-04-21T21:07:46.5013004+02:00;True|2024-04-21T00:35:59.4618301+02:00;False|2024-04-21T00:35:18.9078424+02:00;</History>
+    <LastFailureDetails />
+  </PropertyGroup>
+</Project>
