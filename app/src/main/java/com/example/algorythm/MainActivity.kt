@@ -7,7 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Surface
 import androidx.compose.ui.Modifier
 import com.example.algorythm.ui.theme.AlgorythmTheme
-import com.example.algorythm.ui.theme.MainTheme
+import com.example.algorythm.ui.theme.BackgroundDarkGray
+
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -16,9 +17,10 @@ class MainActivity : ComponentActivity() {
             AlgorythmTheme {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
-                    color = MainTheme
+                    color = BackgroundDarkGray
                 ) {
-                    ScaffoldExample()
+//                    ScaffoldExample()
+                    SignInNavigation()
                 }
             }
         }
