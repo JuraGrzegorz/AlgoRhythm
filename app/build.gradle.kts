@@ -59,6 +59,9 @@ dependencies {
     implementation(libs.androidx.ui.graphics)
     implementation(libs.androidx.ui.tooling.preview)
     implementation(libs.androidx.material3)
+    implementation(libs.jackson.databind)
+    implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.coroutines.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -94,4 +97,6 @@ dependencies {
     // Optional - Integration with RxJava
     implementation("androidx.compose.runtime:runtime-rxjava2")
     implementation ("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+//    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutines_version")
+//    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutines_version")
 }
