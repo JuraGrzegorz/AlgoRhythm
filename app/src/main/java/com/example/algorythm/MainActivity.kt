@@ -9,6 +9,8 @@ import androidx.compose.ui.Modifier
 import com.example.algorythm.ui.theme.AlgorythmTheme
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 
+//tymczasowo
+var loggedin = false
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,7 +21,6 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = BackgroundDarkGray
                 ) {
-//                    ScaffoldExample()
                     SignInNavigation()
                 }
             }

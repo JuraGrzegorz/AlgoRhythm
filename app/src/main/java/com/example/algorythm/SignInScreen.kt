@@ -24,13 +24,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.navigation.compose.NavHost
-import androidx.navigation.compose.composable
-import androidx.navigation.compose.rememberNavController
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
 import com.example.algorythm.ui.theme.PurpleGrey40
@@ -83,7 +79,11 @@ fun SignInScreen(navController: NavController){
                 unfocusedTextColor = Color.White)
         )
         Spacer(modifier = Modifier.height(20.dp))
-        Button(onClick = { /*TODO*/ },
+        Button(onClick = {
+            // to na razie jest na sztywno trzeba bedzie to obsluzyc
+            loggedin = true
+            navController.navigate(Screens.Home.screen)
+                         },
             colors = ButtonColors(containerColor = MainTheme,
                 contentColor = Color.White,
                 disabledContainerColor = PurpleGrey40,

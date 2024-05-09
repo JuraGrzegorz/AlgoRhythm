@@ -16,11 +16,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
-fun Home() {
+fun Home(navController: NavController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(
         color = Color.Black
@@ -46,7 +47,8 @@ fun Home() {
                 .background(Color.Black, RoundedCornerShape(16.dp))
                 .align(Alignment.BottomCenter)
         ) {
-            MusicPlayer()
+            MusicPlayer(navController)
         }
+
     }
 }

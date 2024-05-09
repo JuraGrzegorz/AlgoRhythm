@@ -12,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import com.example.algorythm.ui.theme.BackgroundDarkGray
-import com.example.algorythm.ui.theme.MainTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable

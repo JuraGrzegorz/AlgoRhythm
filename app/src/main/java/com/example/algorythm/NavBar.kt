@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -28,7 +29,7 @@ import com.example.algorythm.ui.theme.MainTheme
 
 
 @Composable
-fun ScaffoldExample() {
+fun ScaffoldExample(addnavController: NavController) {
     val navigationController = rememberNavController()
     LocalContext.current.applicationContext
     val selected = remember {
@@ -100,7 +101,7 @@ fun ScaffoldExample() {
             startDestination = Screens.Home.screen,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screens.Home.screen) { Home() }
+            composable(Screens.Home.screen) { Home(addnavController) }
             composable(Screens.Search.screen) { Search() }
             composable(Screens.Profile.screen) { Profile() }
         }
