@@ -3,12 +3,16 @@ package com.example.algorythm;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
+
+import javax.net.ssl.HttpsURLConnection;
 
 public class LoginEndpoints {
 
@@ -107,19 +111,18 @@ public class LoginEndpoints {
 
     public static String sendPostReq(String apiUrl, String requestBody) throws IOException {
         URL url = new URL(apiUrl);
-        HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+        HttpsURLConnection connection = (HttpsURLConnection) url.openConnection();
         connection.setRequestMethod("POST");
         connection.setRequestProperty("Content-Type", "application/json");
         connection.setDoOutput(true);
+        connection.setChunkedStreamingMode(0);
 
-        System.out.println(requestBody);
-
-        try (OutputStream outputStream = connection.getOutputStream()) {
+        try (OutputStream outputStream = new BufferedOutputStream(connection.getOutputStream())) {
             byte[] input = requestBody.getBytes("utf-8");
             outputStream.write(input, 0, input.length);
         }
         catch (Exception e){
-            System.out.println("wyjebalo sie");
+            e.printStackTrace();
         }
         int responseCode = connection.getResponseCode();
         System.out.println(responseCode);

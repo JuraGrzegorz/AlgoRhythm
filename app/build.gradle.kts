@@ -45,8 +45,10 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
         }
     }
+
 }
 
 dependencies {
@@ -62,6 +64,11 @@ dependencies {
     implementation(libs.jackson.databind)
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.signalr)
+    implementation(libs.mp3agic)
+    implementation(libs.slf4j.api)
+    implementation(libs.logback.classic)
+    implementation(libs.log4j.core)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

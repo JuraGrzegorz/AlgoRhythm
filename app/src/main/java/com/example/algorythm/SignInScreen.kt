@@ -129,7 +129,10 @@ fun SignInScreen(navController: NavController) {
         )
         Spacer(modifier = Modifier.height(20.dp))
         Button(
-            onClick = { performLogin() },
+            onClick = {
+//                performLogin()
+                navController.navigate(Screens.Home.screen)
+                      },
             colors = ButtonColors(
                 containerColor = MainTheme,
                 contentColor = Color.White,

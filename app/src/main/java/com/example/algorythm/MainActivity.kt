@@ -11,6 +11,7 @@ import com.example.algorythm.ui.theme.BackgroundDarkGray
 
 //tymczasowo
 var loggedin = false
+val streamingConnector = StreamingConnector();
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
