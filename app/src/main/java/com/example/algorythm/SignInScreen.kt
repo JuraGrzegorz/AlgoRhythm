@@ -1,5 +1,7 @@
 package com.example.algorythm
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -46,6 +48,7 @@ fun SignInScreen(navController: NavController) {
     systemUiController.setSystemBarsColor(
         color = BackgroundDarkGray
     )
+    (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
     var email by remember {
         mutableStateOf("")
@@ -58,6 +61,35 @@ fun SignInScreen(navController: NavController) {
     val coroutineScope = rememberCoroutineScope()
 
     fun performLogin() {
+        coroutineScope.launch {
+            withContext(Dispatchers.IO) {
+                try {
+                    loggedin = !LoginEndpoints.loginUser(email, password).isNullOrEmpty()
+                    withContext(Dispatchers.Main) {
+                        if (loggedin) {
+                            navController.navigate(Screens.Home.screen)
+                        } else {
+                            Toast.makeText(
+                                context,
+                                "Login failed. Please check your credentials.",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                } catch (e: Exception) {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(
+                            context,
+                            "An error occurred: ${e.message}",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+                }
+            }
+        }
+    }
+
+    fun performReset() {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 try {
@@ -144,7 +176,9 @@ fun SignInScreen(navController: NavController) {
             Text(text = "Login")
         }
         Spacer(modifier = Modifier.height(20.dp))
-        Text(text = "Reset password", Modifier.clickable { }, color = Color.White)
+        Text(text = "Reset password", Modifier.clickable {
+            navController.navigate(Screens.Reset1.screen)
+        }, color = Color.White)
         Spacer(modifier = Modifier.height(20.dp))
         Text(text = "First time here?", fontSize = 20.sp, color = Color.White)
         Spacer(modifier = Modifier.height(10.dp))

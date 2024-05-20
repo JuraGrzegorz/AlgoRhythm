@@ -2,6 +2,8 @@ package com.example.algorythm
 
 
 import Search
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -34,10 +36,11 @@ import kotlinx.coroutines.launch
 @Composable
 fun ScaffoldExample(addnavController: NavController) {
     val navigationController = rememberNavController()
-    LocalContext.current.applicationContext
+    val context = LocalContext.current.applicationContext
     val selected = remember {
         mutableStateOf(Icons.Default.Home)
     }
+    (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
     Scaffold(
         bottomBar = {

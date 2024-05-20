@@ -1,5 +1,7 @@
 package com.example.algorythm
 
+import android.app.Activity
+import android.content.pm.ActivityInfo
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -14,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -26,6 +29,8 @@ fun Home(navController: NavController) {
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
+    val context = LocalContext.current
+    (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
     Box(modifier = Modifier
         .fillMaxSize()
         .background(BackgroundDarkGray)) {
