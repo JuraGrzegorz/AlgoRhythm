@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SongItem(bitmap: Bitmap?, title: String, author: String, onClick: () -> Unit) { // Regular lambda
+fun SongItem(bitmap: Bitmap?, title: String, author: String, onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -62,4 +62,5 @@ fun SongItem(bitmap: Bitmap?, title: String, author: String, onClick: () -> Unit
             )
         }
     }
+
 }

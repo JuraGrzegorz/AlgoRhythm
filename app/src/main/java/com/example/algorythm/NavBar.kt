@@ -17,10 +17,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -31,7 +29,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
-import kotlinx.coroutines.launch
 
 
 @Composable
@@ -108,7 +105,7 @@ fun ScaffoldExample(addnavController: NavController) {
             startDestination = Screens.Home.screen,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screens.Home.screen) { Home(addnavController) }
+            composable(Screens.Home.screen) { Home() }
             composable(Screens.Search.screen) { Search() }
             composable(Screens.Profile.screen) { Profile() }
         }

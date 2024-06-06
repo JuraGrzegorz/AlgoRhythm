@@ -210,4 +210,17 @@ public class LoginEndpoints {
         }
     }
 
+    public static String getMusicByTitle(String title,int count){
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicByTitle?titleSubString="+title+"&countOfReturnedMusic="+count;
+        System.out.println(apiUrl);
+        try{
+            String requestBody = "{\"countOfReturnedMusic\":" + count + "}";
+            String res = sendGetReq(apiUrl,requestBody);
+            return res;
+        }
+        catch (Exception e){
+            return "FAILED TO FETCH DATA";
+        }
+    }
+
 }

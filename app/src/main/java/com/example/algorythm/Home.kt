@@ -7,7 +7,6 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
@@ -21,10 +20,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
 import com.example.algorythm.LoginEndpoints.getProposedMusic
 import com.example.algorythm.Music
-import com.example.algorythm.MusicPlayer
 import com.example.algorythm.SongItem
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
@@ -33,11 +30,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 
+private const val songAmount = 10
+
 @Composable
-fun Home(navController: NavController) {
+fun Home() {
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
-    val songAmount = 10
+
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
@@ -45,7 +44,7 @@ fun Home(navController: NavController) {
     (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
 
     var songs by remember { mutableStateOf(listOf<Song>()) }
-    var selectedSong by remember { mutableStateOf<Song?>(null) } // Add state to hold the selected song
+    var selectedSong by remember { mutableStateOf<Song?>(null) }
 
     LaunchedEffect(Unit) {
         coroutineScope.launch(Dispatchers.IO) {
@@ -58,15 +57,15 @@ fun Home(navController: NavController) {
                     val obj = arr.getJSONObject(i)
                     val id = obj.getString("id")
                     val title = obj.getString("title")
-                    val author = obj.getString("name")
+                    val author = obj.getString("artistName")
                     val thumbnailData = obj.getString("thumbnailData")
                     val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
                     val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                     songList.add(Song(id, title, author, bitmap))
                 }
                 songs = songList
-            } catch (e: Exception) {
-                // Handle the exception
+            } catch (_: Exception) {
+
             }
         }
     }
@@ -87,8 +86,7 @@ fun Home(navController: NavController) {
                                 MainTheme, BackgroundDarkGray,
                             )
                         )
-                    ),
-                contentAlignment = Alignment.Center
+                    ), contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = "Welcome username",
@@ -96,9 +94,7 @@ fun Home(navController: NavController) {
                     color = Color.White,
                     style = TextStyle(
                         shadow = Shadow(
-                            color = Color.Black,
-                            offset = Offset(2f, 2f),
-                            blurRadius = 4f
+                            color = Color.Black, offset = Offset(2f, 2f), blurRadius = 4f
                         )
                     )
                 )
@@ -110,9 +106,7 @@ fun Home(navController: NavController) {
                 color = Color.White,
                 style = TextStyle(
                     shadow = Shadow(
-                        color = Color.Black,
-                        offset = Offset(2f, 2f),
-                        blurRadius = 4f
+                        color = Color.Black, offset = Offset(2f, 2f), blurRadius = 4f
                     )
                 ),
                 modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp)
@@ -133,14 +127,12 @@ fun Home(navController: NavController) {
                     .padding(horizontal = 16.dp)
             ) {
                 items(songs) { song ->
-                    SongItem(
-                        bitmap = song.thumbnail,
+                    SongItem(bitmap = song.thumbnail,
                         title = song.title,
                         author = song.author,
                         onClick = {
-                            selectedSong = song // Set the selected song
-                        }
-                    )
+                            selectedSong = song
+                        })
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
@@ -158,10 +150,9 @@ fun Home(navController: NavController) {
 
     }
 
-    // Display selected song details
     selectedSong?.let {
         Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
     }
 }
 
-data class Song(val id: String, val title: String, val author: String,  val thumbnail: Bitmap?)
+data class Song(val id: String, val title: String, val author: String, val thumbnail: Bitmap?)
