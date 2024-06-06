@@ -141,10 +141,7 @@ public class LoginEndpoints {
                 response.append(inputLine);
             }
             in.close();
-//            Map<String, java.util.List<String>> headers = connection.getHeaderFields();
-//            for (Map.Entry<String, java.util.List<String>> entry : headers.entrySet()) {
-//                System.out.println(entry.getKey() + ": " + entry.getValue());
-//            }
+
             return response.toString();
         } else {
             throw new IOException("HTTP error code: " + responseCode);

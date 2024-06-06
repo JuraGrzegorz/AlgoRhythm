@@ -61,6 +61,7 @@ public class StreamingConnector implements MessageCallback {
             }
         }).start();
 
+        sleep(2000);
         System.out.println(musicData.length);
         convertToMP3(musicData,"test2.mp3");
 

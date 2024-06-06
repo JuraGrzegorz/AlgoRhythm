@@ -57,10 +57,8 @@ public class SignalRClient {
     public void startListening() {
         hubConnection.on("GetMusicBytes", (String base64String) -> {
             if (messageCallback != null) {
-            /*byte[] musicBytes = new byte[99999];
 
-                musicBytes = Base64.getDecoder().decode(base64String);
-            */
+                System.out.println("QWERTYUIOP");
                 messageCallback.onMessageReceived(Base64.getDecoder().decode(base64String));
             }
         }, String.class);
