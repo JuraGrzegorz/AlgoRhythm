@@ -14,6 +14,12 @@ import java.net.URL;
 
 import javax.net.ssl.HttpsURLConnection;
 
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class LoginEndpoints {
 
     public static void main(String[] args) throws IOException {
@@ -175,4 +181,36 @@ public class LoginEndpoints {
             throw new IOException("HTTP error code: " + responseCode);
         }
     }
+
+
+    public static String sendGetReq(String apiUrl, String requestBody) throws IOException {
+        OkHttpClient client = new OkHttpClient();
+
+        RequestBody body = RequestBody.create(MediaType.parse("application/json"), requestBody);
+        Request request = new Request.Builder()
+                .url(apiUrl)
+                .get()
+                .build();
+
+        try (Response response = client.newCall(request).execute()) {
+            if (!response.isSuccessful()) {
+                throw new IOException("Unexpected code " + response);
+            }
+
+            return response.body().string();
+        }
+    }
+    public static String getProposedMusic(int count){
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetProposedMusic?CountOfProposedMusic="+count;
+        try{
+            String requestBody = "{\"CountOfProposedMusic\":" + count + "}";
+            String res = sendGetReq(apiUrl,requestBody);
+            return res;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            return "MAM CHOROBE";
+        }
+    }
+
 }

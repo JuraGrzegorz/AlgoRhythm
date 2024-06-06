@@ -18,8 +18,11 @@ mp3agic = "0.9.1"
 slf4jApi = "2.1.0-alpha1"
 logbackClassic = "1.2.6"
 log4jCore = "2.14.1"
+okhttp="4.11.0"
+
 
 [libraries]
+okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttp" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 coil-compose = { module = "io.coil-kt:coil-compose", version.ref = "coilCompose" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

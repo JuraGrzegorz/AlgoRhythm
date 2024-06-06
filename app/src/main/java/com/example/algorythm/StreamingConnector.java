@@ -34,7 +34,7 @@ public class StreamingConnector implements MessageCallback {
     int position;
     private Lock lock;
 
-    public void start() throws IOException {
+    public void start(String musicID) throws IOException {
         musicData=new byte[1024*1024*5];
         position=0;
         lock= new ReentrantLock();
@@ -46,7 +46,7 @@ public class StreamingConnector implements MessageCallback {
         sleep(2000);
         System.out.println(signalRClient.socketID);
         String url ="https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicDataStream";
-        String requestBody = "{\"musicId\":" + 1 + ",\"socketId\":\"" + signalRClient.socketID +
+        String requestBody = "{\"musicId\":" + musicID + ",\"socketId\":\"" + signalRClient.socketID +
                 "\",\"musicOffSet\":" + 0 + "," + "\"sizeOfMusicData\":" + 1024*1024 + ",\"sizeOfDataFrame\":" + 1024*100 +
 
                 "}";
@@ -61,9 +61,8 @@ public class StreamingConnector implements MessageCallback {
             }
         }).start();
 
-        sleep(7000);
         System.out.println(musicData.length);
-//        convertToMP3(musicData,"test2.mp3");
+        convertToMP3(musicData,"test2.mp3");
 
     }
     @Override
