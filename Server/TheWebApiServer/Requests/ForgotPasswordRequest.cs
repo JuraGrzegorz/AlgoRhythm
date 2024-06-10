@@ -6,6 +6,6 @@ namespace TheWebApiServer.Requests
     {
         [Required]
         [EmailAddress]
-        public String EmailAddress { get; set; };
+        public String Email { get; set; }
     }
 }

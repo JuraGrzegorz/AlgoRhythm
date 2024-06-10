@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -53,9 +52,23 @@ builder.Services.AddDbContext<DataContext>(options =>
 });
 
 builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+builder.Services.AddSingleton<RecommendationModel>();
+
+/*builder.Services.AddTransient<RecommendationModel>();
+builder.Services.AddScoped<RecommendationModel>();
+builder.Services.AddHostedService<RecommendationModelHosted>();*/
+
+builder.Services.AddScoped<VerificationCodeService>();
+
+
+builder.Services.AddMemoryCache();
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<DataContext>();
 
+
+//dodane testowo
+builder.Services.AddHostedService<RecommendationModelInitializer>();
 
 builder.Services.AddSwaggerGen(options =>
 {
@@ -72,7 +85,8 @@ builder.Services.AddSwaggerGen(options =>
 builder.Services.AddSignalR();
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+
+
 if (app.Environment.IsDevelopment())
 {
     /*app.UseSwagger();
@@ -90,5 +104,7 @@ app.UseAuthorization();
 
 app.MapControllers();
 app.MapHub<MusicStreamingHub>("/music-hub");
+
+
 
 app.Run();

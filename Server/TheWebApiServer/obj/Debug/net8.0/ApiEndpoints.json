@@ -1,8 +1,56 @@
 [
   {
     "ContainingType": "TheWebApiServer.Controllers.IdentityController",
+    "Method": "ChangeEmail",
+    "RelativePath": "Identity/ChangeEmail",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "TheWebApiServer.Requests.ChangeEmailRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.IdentityController",
+    "Method": "ChangePassword",
+    "RelativePath": "Identity/ChangePassword",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "TheWebApiServer.Requests.ChangePasswordRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.IdentityController",
+    "Method": "ForgotPassword",
+    "RelativePath": "Identity/ForgotPassword",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "TheWebApiServer.Requests.ForgotPasswordRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.IdentityController",
     "Method": "Login",
-    "RelativePath": "Identity/login",
+    "RelativePath": "Identity/Login",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -28,7 +76,7 @@
   {
     "ContainingType": "TheWebApiServer.Controllers.IdentityController",
     "Method": "Register",
-    "RelativePath": "Identity/register",
+    "RelativePath": "Identity/Register",
     "HttpMethod": "POST",
     "IsController": true,
     "Order": 0,
@@ -36,6 +84,22 @@
       {
         "Name": "registration",
         "Type": "Microsoft.AspNetCore.Identity.Data.RegisterRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.IdentityController",
+    "Method": "ResetPassword",
+    "RelativePath": "Identity/ResetPassword",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "TheWebApiServer.Requests.ResetPasswordRequest",
         "IsRequired": true
       }
     ],
@@ -50,59 +114,96 @@
     "Order": 0,
     "Parameters": [
       {
-        "Name": "getMusicRequest",
-        "Type": "TheWebApiServer.Requests.GetMusicRequest",
-        "IsRequired": true
+        "Name": "MusicId",
+        "Type": "System.Int32",
+        "IsRequired": false
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Void",
-        "MediaTypes": [],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
     "ContainingType": "TheWebApiServer.Controllers.MusicController",
-    "Method": "GetMusicStream",
-    "RelativePath": "Music/GetMusicDataStream",
+    "Method": "GetMusicByTitle",
+    "RelativePath": "Music/GetMusicByTitle",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
     "Parameters": [
       {
-        "Name": "getMusicRequest",
-        "Type": "TheWebApiServer.Requests.GetMusicRequest",
+        "Name": "titleSubString",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "countOfReturnedMusic",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.MusicController",
+    "Method": "GetMusicStream",
+    "RelativePath": "Music/GetMusicDataStream",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "model",
+        "Type": "TheWebApiServer.Requests.GetMusicStreamRequest",
         "IsRequired": true
       }
     ],
-    "ReturnTypes": [
-      {
-        "Type": "System.Void",
-        "MediaTypes": [],
-        "StatusCode": 200
-      }
-    ]
+    "ReturnTypes": []
   },
   {
-    "ContainingType": "TheWebApiServer.Controllers.WeatherForecastController",
-    "Method": "Get",
-    "RelativePath": "WeatherForecast",
+    "ContainingType": "TheWebApiServer.Controllers.MusicController",
+    "Method": "GetProposedMusic",
+    "RelativePath": "Music/GetProposedMusic",
     "HttpMethod": "GET",
     "IsController": true,
     "Order": 0,
-    "Parameters": [],
-    "ReturnTypes": [
+    "Parameters": [
       {
-        "Type": "System.Collections.Generic.IEnumerable\u00601[[TheWebApiServer.WeatherForecast, TheWebApiServer, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null]]",
-        "MediaTypes": [
-          "text/plain",
-          "application/json",
-          "text/json"
-        ],
-        "StatusCode": 200
+        "Name": "CountOfProposedMusic",
+        "Type": "System.Int32",
+        "IsRequired": false
       }
-    ]
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.MusicController",
+    "Method": "LikeMusic",
+    "RelativePath": "Music/LikeMusic",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "musicId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.testController",
+    "Method": "testGetMusic",
+    "RelativePath": "test/testGetMusic",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "userId",
+        "Type": "System.String",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
   }
 ]
