@@ -1,3 +1,4 @@
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -24,7 +25,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.algorythm.LoginEndpoints.getMusicByTitle
+import com.example.algorythm.API.getMusicByTitle
 import com.example.algorythm.Music
 import com.example.algorythm.SongItem
 import com.example.algorythm.ui.theme.BackgroundDarkGray
@@ -99,6 +100,7 @@ fun Bitmap.toByteArray(): ByteArray {
 
 @Composable
 fun Search() {
+    val activity = LocalContext.current as Activity
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(
         color = Color.Black
@@ -116,7 +118,10 @@ fun Search() {
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 if (searchText.isNotEmpty()) {
-                    val data: String = getMusicByTitle(searchText, songAmount)
+                    var jwt = ""
+                    val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                    jwt = sharedPref.getString("JWT","") ?:""
+                    val data: String = getMusicByTitle(searchText, songAmount,jwt)
                     val arr = JSONArray(data)
                     val songList = mutableListOf<Song>()
                     for (i in 0 until arr.length()) {

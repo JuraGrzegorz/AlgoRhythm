@@ -60,11 +60,12 @@ fun SignUpScreen(navController: NavController) {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    if(password.equals(passwordConfirmation)) loggedin = LoginEndpoints.registerUser(email,password)
-                    else loggedin = false;
+                    var success = false
+                    if(password.equals(passwordConfirmation)) success = API.registerUser(email,password)
+                    else success = false
                     withContext(Dispatchers.Main) {
-                        if (loggedin) {
-                            navController.navigate(Screens.Home.screen)
+                        if (success) {
+                            navController.navigate(Screens.SignInScreen.screen)
                         } else {
                             Toast.makeText(
                                 context,

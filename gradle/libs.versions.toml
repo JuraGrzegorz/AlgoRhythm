@@ -19,6 +19,7 @@ slf4jApi = "2.1.0-alpha1"
 logbackClassic = "1.2.6"
 log4jCore = "2.14.1"
 okhttp="4.11.0"
+okhttpVersion = "5.0.0-alpha.14"
 
 
 [libraries]
@@ -47,6 +48,7 @@ mp3agic = { group = "com.mpatric", name = "mp3agic", version.ref = "mp3agic" }
 slf4j-api = { group = "org.slf4j", name = "slf4j-api", version.ref = "slf4jApi" }
 logback-classic = { group = "ch.qos.logback", name = "logback-classic", version.ref = "logbackClassic" }
 log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.ref = "log4jCore" }
+okhttp3-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttpVersion" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }

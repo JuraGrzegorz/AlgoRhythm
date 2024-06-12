@@ -1,7 +1,11 @@
 package com.example.algorythm
 
 import android.app.Activity
+import android.content.Context
+import android.content.SharedPreferences
 import android.content.pm.ActivityInfo
+import android.provider.Settings.Global.getString
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -17,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.currentCompositionLocalContext
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,6 +48,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun SignInScreen(navController: NavController) {
+    val activity = LocalContext.current as Activity
     val systemUiController = rememberSystemUiController()
     val context = LocalContext.current
     systemUiController.setSystemBarsColor(
@@ -64,38 +70,17 @@ fun SignInScreen(navController: NavController) {
         coroutineScope.launch {
             withContext(Dispatchers.IO) {
                 try {
-                    loggedin = !LoginEndpoints.loginUser(email, password).isNullOrEmpty()
-                    withContext(Dispatchers.Main) {
-                        if (loggedin) {
-                            navController.navigate(Screens.Home.screen)
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Login failed. Please check your credentials.",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
-                } catch (e: Exception) {
-                    withContext(Dispatchers.Main) {
-                        Toast.makeText(
-                            context,
-                            "An error occurred: ${e.message}",
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        }
-    }
 
-    fun performReset() {
-        coroutineScope.launch {
-            withContext(Dispatchers.IO) {
-                try {
-                    loggedin = !LoginEndpoints.loginUser(email, password).isNullOrEmpty()
+                    val map = API.loginUser(email, password)
+                    loggedin = !map.isNullOrEmpty()
                     withContext(Dispatchers.Main) {
                         if (loggedin) {
+                            val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                            with (sharedPref.edit()) {
+                                putString("JWT", map["token"])
+                                putString("username", map["username"])
+                                apply()
+                            }
                             navController.navigate(Screens.Home.screen)
                         } else {
                             Toast.makeText(
@@ -162,8 +147,8 @@ fun SignInScreen(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-//                performLogin()
-                navController.navigate(Screens.Home.screen)
+                performLogin()
+//                navController.navigate(Screens.Home.screen)
                       },
             colors = ButtonColors(
                 containerColor = MainTheme,

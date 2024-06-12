@@ -1,8 +1,10 @@
 import android.app.Activity
+import android.content.Context
 import android.content.pm.ActivityInfo
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.algorythm.LoginEndpoints.getProposedMusic
+import com.example.algorythm.API.getProposedMusic
 import com.example.algorythm.Music
 import com.example.algorythm.SongItem
 import com.example.algorythm.ui.theme.BackgroundDarkGray
@@ -34,9 +36,11 @@ private const val songAmount = 10
 
 @Composable
 fun Home() {
+    val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
-
+    val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+    var username = sharedPref.getString("username","") ?:""
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
@@ -49,7 +53,10 @@ fun Home() {
     LaunchedEffect(Unit) {
         coroutineScope.launch(Dispatchers.IO) {
             try {
-                val data: String = getProposedMusic(songAmount)
+                var jwt = ""
+                jwt = sharedPref.getString("JWT","") ?:""
+                Log.e("jwt",jwt)
+                val data: String = getProposedMusic(songAmount,jwt)
                 println(data)
                 val arr = JSONArray(data)
                 val songList = mutableListOf<Song>()
@@ -89,7 +96,7 @@ fun Home() {
                     ), contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = "Welcome username",
+                    text = "Welcome " + username.split('@')[0],
                     fontSize = 30.sp,
                     color = Color.White,
                     style = TextStyle(

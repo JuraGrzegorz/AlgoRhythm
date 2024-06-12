@@ -19,12 +19,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.algorythm.API.*
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
 import com.example.algorythm.ui.theme.PurpleGrey40
@@ -65,8 +65,11 @@ fun ResetPass1(navController: NavController) {
         Button(
             onClick = {
                 /* TODO */
-                curremail = email
-                navController.navigate(Screens.Reset2.screen)
+                if(forgotPassword(email,null))
+                {
+                    curremail = email
+                    navController.navigate(Screens.Reset2.screen)
+                }
             },
             colors = ButtonColors(
                 containerColor = MainTheme,

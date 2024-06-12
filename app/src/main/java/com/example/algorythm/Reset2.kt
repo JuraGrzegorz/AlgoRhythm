@@ -27,6 +27,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.algorythm.API.*
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
 import com.example.algorythm.ui.theme.PurpleGrey40
@@ -44,6 +45,10 @@ fun ResetPass2(navController: NavController) {
         color = BackgroundDarkGray
     )
 
+
+    var code by remember {
+        mutableStateOf("")
+    }
     var password by remember {
         mutableStateOf("")
     }
@@ -59,6 +64,21 @@ fun ResetPass2(navController: NavController) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(text = "Reset Password", fontSize = 40.sp, fontWeight = FontWeight.Bold, color = Color.White)
+        Spacer(modifier = Modifier.height(20.dp))
+        OutlinedTextField(
+            value = code, onValueChange = { code = it },
+            label = {
+                Text(text = "Enter code from email", color = Color.White)
+            },
+            visualTransformation = PasswordVisualTransformation(),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MainTheme,
+                unfocusedBorderColor = Color.White,
+                cursorColor = MainTheme,
+                focusedTextColor = Color.White,
+                unfocusedTextColor = Color.White
+            )
+        )
         Spacer(modifier = Modifier.height(20.dp))
         OutlinedTextField(
             value = password, onValueChange = { password = it },
@@ -93,6 +113,20 @@ fun ResetPass2(navController: NavController) {
         Button(
             onClick = {
                 /* TODO */
+                if(password.equals(passwordConfirmation))
+                {
+                    verifyForgotPasswordCode(curremail,code,password,null)
+                    navController.navigate(Screens.SignInScreen.screen)
+                }
+                else
+                {
+                    Toast.makeText(
+                        context,
+                        "Please check your credentials.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
             },
             colors = ButtonColors(
                 containerColor = MainTheme,
@@ -107,7 +141,8 @@ fun ResetPass2(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                navController.navigate(Screens.SignInScreen.screen)
+                      forgotPassword(curremail,null)
+//                navController.navigate(Screens.SignInScreen.screen)
             },
             colors = ButtonColors(
                 containerColor = MainTheme,
