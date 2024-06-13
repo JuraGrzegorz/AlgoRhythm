@@ -174,4 +174,92 @@ public class API {
         }
     }
 
+    public static String createPlaylist(String playlistName,int id,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/CreatePlayList?playlistName="+playlistName+"&musicId="+id;
+        try{
+            String requestBody = "{\"playlistName\":\"" + playlistName + "\",\"musicId\":" + id + "}";
+            return sendPostJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+    public static String addToPlaylist(int playlistID,int songID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/AddSongToPlaylist?playlistId="+playlistID+"&musicId="+songID;
+        try{
+            String requestBody = "{\"playlistId\":\"" + playlistID + "\",\"musicId\":\"" + songID + "\"}";
+            return sendPostJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+    public static String likeMusic(String songID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/LikeMusic?musicId="+songID;
+        System.out.println(apiUrl);
+        try{
+            String requestBody = "{}";
+            return sendPostJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+    public static String unlikeMusic(String songID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/UnLikeMusic?musicId="+songID;
+        System.out.println(apiUrl);
+        try{
+            String requestBody = "{}";
+            return sendPostJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+    public static String getLikedMusic(int countOfReturnedMusic,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetLikedUserMusic?countOfReturnedMusic="+countOfReturnedMusic;
+        try{
+            String requestBody = "{}";
+            return sendGetJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+    public static String getUserPlaylists(int countOfReturnedMusic,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/GetUserPlaylist?countOfReturnedPlaylist="+countOfReturnedMusic;
+        try{
+            String requestBody = "{}";
+            return sendGetJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+
+    public static String getPlaylistThumbnail(int playlistID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/GetPlaylistThumbnailData?playlistId="+playlistID;
+        try{
+            String requestBody = "{}";
+            return sendGetJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+
 }

@@ -107,8 +107,8 @@ fun ScaffoldExample() {
             composable(Screens.Profile.screen) { Profile(navController = navigationController) }
             composable("playlist/{playlistName}/{imageResId}") { backStackEntry ->
                 val playlistName = backStackEntry.arguments?.getString("playlistName") ?: ""
-                val imageResId = backStackEntry.arguments?.getString("imageResId")?.toInt() ?: 0
-                PlaylistScreen(playlistName = playlistName, imageResId = imageResId)
+                val Id = backStackEntry.arguments?.getString("Id")?.toInt() ?: 0
+                PlaylistScreen(playlistName = playlistName, Id = Id)
             }
         }
     }

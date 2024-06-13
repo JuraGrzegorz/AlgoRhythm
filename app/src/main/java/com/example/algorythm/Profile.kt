@@ -1,7 +1,12 @@
 package com.example.algorythm
 
+import Song
 import android.app.Activity
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.util.Base64
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -17,13 +22,23 @@ import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavHostController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONArray
 
 @Composable
 fun Profile(navController: NavHostController) {
@@ -34,6 +49,43 @@ fun Profile(navController: NavHostController) {
     val activity = LocalContext.current as Activity
     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
     val username = sharedPref.getString("username", "") ?: ""
+    val coroutineScope = rememberCoroutineScope()
+
+    var playlists by remember { mutableStateOf(listOf<PlaylistData>()) }
+
+
+
+
+
+
+
+
+
+
+    LaunchedEffect(Unit) {
+        coroutineScope.launch(Dispatchers.IO) {
+            try {
+                val jwt = sharedPref.getString("JWT", "") ?: ""
+
+                val data: String = API.getUserPlaylists(100, jwt)
+                val jsonArray = JSONArray(data)
+                val fetchedPlaylists = mutableListOf<PlaylistData>()
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    val playlist = PlaylistData(
+                        id = jsonObject.getInt("id"),
+                        name = jsonObject.getString("name"),
+                        countOfMusic = jsonObject.getInt("countOfMusic")
+                    )
+                    fetchedPlaylists.add(playlist)
+                }
+                playlists = fetchedPlaylists // Update the state here
+            } catch (e: Exception) {
+                Log.e("Profile", "Error fetching playlists", e)
+            }
+        }
+    }
+
 
     Box(
         modifier = Modifier
@@ -120,18 +172,22 @@ fun Profile(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                items(10) { index ->
-                    PlaylistItem(
-                        imageResId = R.drawable.logo_placeholder,
-                        title = "Playlist $index",
-                        onClick = {
-                            navController.navigate("playlist/Playlist $index/${R.drawable.logo_placeholder}")
-                        },
-                        onButtonClick = { /* Handle button click */ }
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
+
+                println("playlisty" + playlists.size)
+                    items(playlists) { playlist ->
+                        PlaylistItem(
+                            imageResId = R.drawable.logo_placeholder,
+                            title = playlist.name,
+                            onClick = {
+                                navController.navigate("playlist/${playlist.name}/${playlist.id}")
+                            },
+                            onButtonClick = { /* Handle button click */ }
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+
             }
         }
     }
 }
+data class PlaylistData(val id: Int, val name: String, val countOfMusic: Int)

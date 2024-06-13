@@ -1,9 +1,10 @@
 package com.example.algorythm
 
 import android.graphics.Bitmap
+import android.app.Activity
+import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
-import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -24,6 +25,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.algorythm.API.likeMusic
+import com.example.algorythm.API.unlikeMusic
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import kotlinx.coroutines.*
 
@@ -34,6 +37,7 @@ fun Music(
     musicID: String,
     bitmap: Bitmap?,
 ) {
+    val activity = LocalContext.current as Activity
     var isPlaying by remember { mutableStateOf(false) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
     var currentPosition by remember { mutableStateOf(0) }
@@ -82,10 +86,21 @@ fun Music(
     LaunchedEffect(musicID) {
         withContext(Dispatchers.IO) {
             try {
-                val musicUrl = "https://thewebapiserver20240424215817.azurewebsites.net/test/GetMusicData?songId=$musicID"
+                val musicUrl =
+                    "https://thewebapiserver20240424215817.azurewebsites.net/test/GetMusicData?songId=$musicID"
                 startPlaying(musicUrl)
             } catch (e: Exception) {
                 Log.e("Music", "Error starting music", e)
+            }
+        }
+    }
+
+    suspend fun handleFavoriteButton() {
+        val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+        val jwt = sharedPref.getString("JWT", "") ?: ""
+        withContext(Dispatchers.IO) {
+            if (likeMusic(musicID, jwt) == null){
+                unlikeMusic(musicID, jwt)
             }
         }
     }
@@ -161,7 +176,9 @@ fun Music(
                 }
             ) {
                 Image(
-                    painter = if (isPlaying) painterResource(id = R.drawable.baseline_pause_circle_24) else painterResource(id = R.drawable.baseline_play_circle_24),
+                    painter = if (isPlaying) painterResource(id = R.drawable.baseline_pause_circle_24) else painterResource(
+                        id = R.drawable.baseline_play_circle_24
+                    ),
                     contentDescription = if (isPlaying) "Pause" else "Play",
                     modifier = Modifier.size(180.dp),
                     colorFilter = ColorFilter.tint(Color.White)
@@ -175,6 +192,40 @@ fun Music(
                     painter = painterResource(id = R.drawable.baseline_skip_next_24),
                     contentDescription = "Next",
                     modifier = Modifier.size(120.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 20.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = { /* Plus logic */ }
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_add_24),
+                    contentDescription = "Plus",
+                    modifier = Modifier.size(50.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            IconButton(
+                onClick = {
+                    coroutineScope.launch {
+                        handleFavoriteButton()
+                    }
+                }
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_fav_star_24),
+                    contentDescription = "Star",
+                    modifier = Modifier.size(50.dp),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
             }
@@ -194,7 +245,7 @@ fun Music(
         Spacer(modifier = Modifier.height(10.dp))
         Box(modifier = Modifier.align(Alignment.Start)) {
             Text(
-                text = (currentPosition/1000).toString() + "/" + (duration/1000).toString(),
+                text = (currentPosition / 1000).toString() + "/" + (duration / 1000).toString(),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold,
                 color = Color.White

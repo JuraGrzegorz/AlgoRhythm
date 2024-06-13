@@ -10,7 +10,7 @@ sealed class Screens (val screen: String){
     data object Reset1: Screens("Reset1")
     data object Reset2: Screens("Reset2")
 
-    data object Playlist : Screens("playlist/{playlistName}/{imageResId}")
+    data object Playlist : Screens("playlist/{playlistName}/{Id}")
 
 
 }

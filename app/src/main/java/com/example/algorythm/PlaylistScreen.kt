@@ -5,18 +5,20 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.platform.LocalContext
@@ -24,20 +26,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.algorythm.API.getLikedMusic
 import com.example.algorythm.API.getProposedMusic
 import com.example.algorythm.Music
+import com.example.algorythm.R
 import com.example.algorythm.SongItem
 import com.example.algorythm.ui.theme.BackgroundDarkGray
-import com.example.algorythm.ui.theme.MainTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 
-private const val songAmount = 10
+private const val songAmount = 100
 
 @Composable
-fun PlaylistScreen(playlistName: String, imageResId: Int) {
+fun PlaylistScreen(playlistName: String, Id: Int) {
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
@@ -57,7 +60,7 @@ fun PlaylistScreen(playlistName: String, imageResId: Int) {
                 var jwt = ""
                 jwt = sharedPref.getString("JWT", "") ?: ""
                 Log.e("jwt", jwt)
-                val data: String = getProposedMusic(songAmount, jwt)
+                val data: String = getLikedMusic(songAmount, jwt)
                 println(data)
                 val arr = JSONArray(data)
                 val songList = mutableListOf<Song>()
@@ -87,12 +90,12 @@ fun PlaylistScreen(playlistName: String, imageResId: Int) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(200.dp)
-                    , contentAlignment = Alignment.Center
+                    .height(200.dp),
+                contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Image(
-                        painter = painterResource(id = imageResId),
+                        painter = painterResource(id = R.drawable.logo_placeholder),
                         contentDescription = null,
                         modifier = Modifier
                             .size(100.dp)
@@ -106,6 +109,32 @@ fun PlaylistScreen(playlistName: String, imageResId: Int) {
                                 color = Color.Black, offset = Offset(2f, 2f), blurRadius = 4f
                             )
                         )
+                    )
+                }
+
+            }
+
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.SpaceAround
+            ) {
+                IconButton(onClick = { /* Share functionality */ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_share_24),
+                        contentDescription = "Share",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                IconButton(onClick = { /* Play functionality */ }) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_play_circle_24),
+                        contentDescription = "Play",
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }
@@ -135,6 +164,10 @@ fun PlaylistScreen(playlistName: String, imageResId: Int) {
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+
         }
     }
 
