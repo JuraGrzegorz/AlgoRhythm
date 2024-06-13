@@ -17,7 +17,7 @@ fun SignInNavigation(){
     ) {
         composable(Screens.SignInScreen.screen) { SignInScreen(navigationController) }
         composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController) }
-        composable(Screens.Home.screen) { ScaffoldExample(navigationController)}
+        composable(Screens.Home.screen) { ScaffoldExample()}
         composable(Screens.Music.screen) {  Music(
             title = "title",
             author = "author",

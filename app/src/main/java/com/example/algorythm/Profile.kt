@@ -23,16 +23,17 @@ import androidx.compose.material3.IconButton
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.navigation.NavHostController
 
 @Composable
-fun Profile() {
+fun Profile(navController: NavHostController) {
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
     val activity = LocalContext.current as Activity
     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
-    val username = sharedPref.getString("username","") ?:""
+    val username = sharedPref.getString("username", "") ?: ""
 
     Box(
         modifier = Modifier
@@ -91,27 +92,28 @@ fun Profile() {
                     .align(Alignment.CenterHorizontally)
             )
 
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-            ){
+            ) {
                 PlaylistItem(
-                    imageResId = R.drawable.logo_placeholder,
+                    imageResId = R.drawable.fav_playlist_thumnail,
                     title = "Favourite tracks",
-                    onClick = {/* Handle on playlist click */},
+                    onClick = {
+                        navController.navigate("playlist/Favourite tracks/${R.drawable.fav_playlist_thumnail}")
+                    },
                     onButtonClick = { /* Handle button click */ }
                 )
             }
 
-
             HorizontalDivider(
-                modifier = Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 16.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp, bottom = 16.dp),
                 thickness = 1.dp,
                 color = Color.White
             )
-
 
             LazyColumn(
                 modifier = Modifier
@@ -122,7 +124,9 @@ fun Profile() {
                     PlaylistItem(
                         imageResId = R.drawable.logo_placeholder,
                         title = "Playlist $index",
-                        onClick = {/* Handle on playlist click */},
+                        onClick = {
+                            navController.navigate("playlist/Playlist $index/${R.drawable.logo_placeholder}")
+                        },
                         onButtonClick = { /* Handle button click */ }
                     )
                     Spacer(modifier = Modifier.height(16.dp))

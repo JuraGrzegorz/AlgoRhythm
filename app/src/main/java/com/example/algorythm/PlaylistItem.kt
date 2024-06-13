@@ -1,6 +1,5 @@
 package com.example.algorythm
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -32,9 +31,8 @@ fun PlaylistItem(imageResId: Int, title: String, onButtonClick: () -> Unit, onCl
             painter = painterResource(id = imageResId),
             contentDescription = null,
             modifier = Modifier
-                .size(70.dp)
-                .clip(RectangleShape)
-                .background(Color.White)
+                .size(50.dp)
+
         )
         Spacer(modifier = Modifier.width(16.dp))
 

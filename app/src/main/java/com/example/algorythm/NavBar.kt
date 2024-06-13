@@ -2,6 +2,7 @@ package com.example.algorythm
 
 
 import Home
+import PlaylistScreen
 import Search
 import android.app.Activity
 import android.content.pm.ActivityInfo
@@ -32,9 +33,9 @@ import com.example.algorythm.ui.theme.MainTheme
 
 
 @Composable
-fun ScaffoldExample(addnavController: NavController) {
+fun ScaffoldExample() {
     val navigationController = rememberNavController()
-    val context = LocalContext.current.applicationContext
+    val context = LocalContext.current
     val selected = remember {
         mutableStateOf(Icons.Default.Home)
     }
@@ -58,7 +59,6 @@ fun ScaffoldExample(addnavController: NavController) {
                         modifier = Modifier.size(26.dp),
                         tint = if (selected.value == Icons.Default.Home) Color.White else BackgroundDarkGray
                     )
-
                 }
 
                 IconButton(
@@ -76,7 +76,6 @@ fun ScaffoldExample(addnavController: NavController) {
                         modifier = Modifier.size(26.dp),
                         tint = if (selected.value == Icons.Default.Search) Color.White else BackgroundDarkGray
                     )
-
                 }
 
                 IconButton(
@@ -94,9 +93,7 @@ fun ScaffoldExample(addnavController: NavController) {
                         modifier = Modifier.size(26.dp),
                         tint = if (selected.value == Icons.Default.Person) Color.White else BackgroundDarkGray
                     )
-
                 }
-
             }
         },
     ) { innerPadding ->
@@ -107,7 +104,12 @@ fun ScaffoldExample(addnavController: NavController) {
         ) {
             composable(Screens.Home.screen) { Home() }
             composable(Screens.Search.screen) { Search() }
-            composable(Screens.Profile.screen) { Profile() }
+            composable(Screens.Profile.screen) { Profile(navController = navigationController) }
+            composable("playlist/{playlistName}/{imageResId}") { backStackEntry ->
+                val playlistName = backStackEntry.arguments?.getString("playlistName") ?: ""
+                val imageResId = backStackEntry.arguments?.getString("imageResId")?.toInt() ?: 0
+                PlaylistScreen(playlistName = playlistName, imageResId = imageResId)
+            }
         }
     }
 }

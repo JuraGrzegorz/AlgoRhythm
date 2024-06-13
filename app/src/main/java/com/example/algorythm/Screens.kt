@@ -9,4 +9,8 @@ sealed class Screens (val screen: String){
     data object Music: Screens("Music")
     data object Reset1: Screens("Reset1")
     data object Reset2: Screens("Reset2")
+
+    object Playlist : Screens("playlist/{playlistName}/{imageResId}")
+
+
 }
