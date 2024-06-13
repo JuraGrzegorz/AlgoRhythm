@@ -144,12 +144,29 @@ public class API {
             return "FAILED TO FETCH DATA";
         }
     }
-    public static String getMusicByTitle(String title,int count,String jwt){
+
+    public static String getMusicByTitle(String title,int count,String jwt,String genre){
         String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicByTitle?titleSubString="+title+"&countOfReturnedMusic="+count;
+        if (genre != null){
+            apiUrl += "&categoryName=" + genre;
+        }
         System.out.println(apiUrl);
         try{
             String requestBody = "{\"countOfReturnedMusic\":" + count + "}";
             String res = sendGetJWT(apiUrl,requestBody,jwt);
+            return res;
+        }
+        catch (Exception e){
+            return "FAILED TO FETCH DATA";
+        }
+    }
+    public static String getGenres(){
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetAllGenres";
+
+        System.out.println(apiUrl);
+        try{
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,null);
             return res;
         }
         catch (Exception e){
