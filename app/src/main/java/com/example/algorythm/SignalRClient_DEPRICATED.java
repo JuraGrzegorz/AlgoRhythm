@@ -5,12 +5,10 @@ import com.microsoft.signalr.HubConnectionBuilder;
 import com.microsoft.signalr.HubConnectionState;
 import com.microsoft.signalr.OnClosedCallback;
 
-import java.net.Socket;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
-public class SignalRClient {
+public class SignalRClient_DEPRICATED {
     private final HubConnection hubConnection;
     private MessageCallback messageCallback;
 
@@ -21,7 +19,7 @@ public class SignalRClient {
     public String socketID;
 
 
-    public SignalRClient() {
+    public SignalRClient_DEPRICATED() {
         hubConnection = HubConnectionBuilder.create("wss://thewebapiserver20240424215817.azurewebsites.net/music-hub")
                 .build();
     }

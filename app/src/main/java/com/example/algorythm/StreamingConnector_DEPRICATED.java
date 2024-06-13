@@ -1,22 +1,18 @@
 package com.example.algorythm;
 
 import com.mpatric.mp3agic.*;
-import com.example.algorythm.MessageCallback;
-import com.example.algorythm.SignalRClient;
 
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import static java.lang.Thread.sleep;
-import static com.example.algorythm.LoginEndpoints.sendPostReq;
+import static com.example.algorythm.LoginEndpoints_DEPRICATED.sendPostReq;
 
 
-public class StreamingConnector implements MessageCallback {
+public class StreamingConnector_DEPRICATED implements MessageCallback {
     public static void sleep(long milliseconds) {
         try {
             Thread.sleep(milliseconds);
@@ -26,7 +22,7 @@ public class StreamingConnector implements MessageCallback {
         }
     }
 
-    public SignalRClient signalRClient;
+    public SignalRClient_DEPRICATED signalRClient;
 
     private boolean isPlaying = false;
 
@@ -38,7 +34,7 @@ public class StreamingConnector implements MessageCallback {
         musicData=new byte[1024*1024*5];
         position=0;
         lock= new ReentrantLock();
-        signalRClient = new SignalRClient();
+        signalRClient = new SignalRClient_DEPRICATED();
         signalRClient.getID();
         signalRClient.startConnection();
         signalRClient.setMessageCallback(this);

@@ -2,19 +2,16 @@ package com.example.algorythm
 
 import android.graphics.Bitmap
 import android.media.MediaPlayer
+import android.util.Log
+import android.widget.TextView
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,11 +25,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.algorythm.ui.theme.BackgroundDarkGray
-import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.io.IOException
+import kotlinx.coroutines.*
 
 @Composable
 fun Music(
@@ -40,39 +33,64 @@ fun Music(
     author: String,
     musicID: String,
     bitmap: Bitmap?,
-)
-{
+) {
     var isPlaying by remember { mutableStateOf(false) }
-    val mediaPlayer = MediaPlayer()
-    val cache = LocalContext.current.applicationContext.cacheDir
+    var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
+    var currentPosition by remember { mutableStateOf(0) }
+    var duration by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    fun initMusic() {
+    fun startSeekBarUpdate() {
         coroutineScope.launch {
+            while (mediaPlayer?.isPlaying == true) {
+                currentPosition = mediaPlayer?.currentPosition ?: 0
+                delay(1000)
+            }
+        }
+    }
+
+    fun startPlaying(url: String) {
+        if (mediaPlayer == null) {
+            mediaPlayer = MediaPlayer().apply {
+                setDataSource(url)
+                setOnPreparedListener {
+                    start()
+                    duration = mediaPlayer?.duration ?: 0
+                    isPlaying = true
+                    startSeekBarUpdate()
+                }
+                setOnCompletionListener {
+                    isPlaying = false
+                }
+                prepareAsync()
+            }
+        } else {
+            mediaPlayer?.start()
+            isPlaying = true
+            startSeekBarUpdate()
+        }
+    }
+
+    fun stopPlaying() {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+        isPlaying = false
+    }
+
+    LaunchedEffect(musicID) {
+        withContext(Dispatchers.IO) {
             try {
-                streamingConnector.start(musicID)
-                val tempMp3: File = File.createTempFile("tempfile", "mp3", cache)
-                tempMp3.deleteOnExit()
-                val fos: FileOutputStream = FileOutputStream(tempMp3)
-                fos.write(streamingConnector.musicData)
-                fos.close()
-
-                mediaPlayer.reset()
-
-                val fis: FileInputStream = FileInputStream(tempMp3)
-                mediaPlayer.setDataSource(fis.fd)
-
-                mediaPlayer.prepareAsync()
-                mediaPlayer.start()
-            } catch (ex: IOException) {
-                val s: String = ex.toString()
-                ex.printStackTrace()
+                val musicUrl = "https://thewebapiserver20240424215817.azurewebsites.net/test/GetMusicData?songId=$musicID"
+                startPlaying(musicUrl)
+            } catch (e: Exception) {
+                Log.e("Music", "Error starting music", e)
             }
         }
     }
 
     Column(
-
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -122,13 +140,11 @@ fun Music(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(
-                onClick = {
-                    /* TODO: */
-                }
+                onClick = { /* Previous track logic */ }
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_previous_24),
-                    contentDescription = "LeftArrow",
+                    contentDescription = "Previous",
                     modifier = Modifier.size(120.dp),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
@@ -137,15 +153,15 @@ fun Music(
             IconButton(
                 onClick = {
                     if (isPlaying) {
-                        mediaPlayer.stop()
+                        mediaPlayer?.pause()
                     } else {
-                        mediaPlayer.start()
+                        mediaPlayer?.start()
                     }
                     isPlaying = !isPlaying
                 }
             ) {
                 Image(
-                    painter = if (isPlaying) painterResource(id = R.drawable.baseline_play_circle_24) else painterResource(id = R.drawable.baseline_pause_circle_24),
+                    painter = if (isPlaying) painterResource(id = R.drawable.baseline_pause_circle_24) else painterResource(id = R.drawable.baseline_play_circle_24),
                     contentDescription = if (isPlaying) "Pause" else "Play",
                     modifier = Modifier.size(180.dp),
                     colorFilter = ColorFilter.tint(Color.White)
@@ -153,21 +169,42 @@ fun Music(
             }
             Spacer(modifier = Modifier.width(10.dp))
             IconButton(
-                onClick = {
-                    /* TODO: */
-                }
+                onClick = { /* Next track logic */ }
             ) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_next_24),
-                    contentDescription = "RightArrow",
+                    contentDescription = "Next",
                     modifier = Modifier.size(120.dp),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
             }
         }
+        Spacer(modifier = Modifier.height(20.dp))
+        Slider(
+            value = if (duration > 0) currentPosition / duration.toFloat() else 0f,
+            onValueChange = { newValue ->
+                val newPosition = (newValue * duration).toInt()
+                mediaPlayer?.seekTo(newPosition)
+                currentPosition = newPosition
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Box(modifier = Modifier.align(Alignment.Start)) {
+            Text(
+                text = (currentPosition/1000).toString() + "/" + (duration/1000).toString(),
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+        }
     }
 
-    LaunchedEffect(true) {
-        initMusic()
+    DisposableEffect(Unit) {
+        onDispose {
+            stopPlaying()
+        }
     }
 }

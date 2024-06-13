@@ -1,5 +1,7 @@
 package com.example.algorythm
 
+import android.app.Activity
+import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -19,6 +21,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 
 @Composable
@@ -27,6 +30,9 @@ fun Profile() {
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
+    val activity = LocalContext.current as Activity
+    val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+    val username = sharedPref.getString("username","") ?:""
 
     Box(
         modifier = Modifier
@@ -48,7 +54,7 @@ fun Profile() {
                     )
             ) {
                 Text(
-                    text = "username",
+                    text = username.split("@")[0],
                     fontSize = 27.sp,
                     color = Color.White,
                     modifier = Modifier

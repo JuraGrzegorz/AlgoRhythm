@@ -40,7 +40,7 @@ fun Home() {
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
-    var username = sharedPref.getString("username","") ?:""
+    val username = sharedPref.getString("username","") ?:""
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
