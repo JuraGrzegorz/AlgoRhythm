@@ -1,5 +1,6 @@
 package com.example.algorythm
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -15,43 +16,63 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.IconButton
+import androidx.compose.ui.graphics.asImageBitmap
 
 @Composable
-fun PlaylistItem(imageResId: Int, title: String, onButtonClick: () -> Unit, onClick: () -> Unit) {
-    Row(
+fun PlaylistItem(
+    bitmap: Bitmap?,
+    placeholderResId: Int,
+    title: String,
+    onClick: () -> Unit,
+    onButtonClick: () -> Unit
+) {
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(4.dp)
-            .clip(RectangleShape)
+            .padding(vertical = 8.dp)
             .clickable(onClick = onClick)
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            painter = painterResource(id = imageResId),
-            contentDescription = null,
-            modifier = Modifier
-                .size(50.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
 
-        )
-        Spacer(modifier = Modifier.width(16.dp))
+            ) {
+                bitmap?.let {
+                    Image(
+                        bitmap = it.asImageBitmap(),
+                        contentDescription = null,
+                        modifier = Modifier.size(64.dp)
+                    )
+                } ?: Image(
+                    painter = painterResource(id = placeholderResId),
+                    contentDescription = null,
+                    modifier = Modifier.size(64.dp)
+                )
+            }
 
-        Column {
+            Spacer(modifier = Modifier.width(16.dp))
+
             Text(
                 text = title,
-                fontSize = 25.sp,
-                color = Color.White
+                fontSize = 18.sp,
+                color = Color.White,
+                modifier = Modifier.weight(1f)
             )
-        }
 
-        Spacer(modifier = Modifier.weight(1f))
-
-        IconButton(onClick = onButtonClick) {
-            Icon(
-                painter = painterResource(id = R.drawable.ui_3_dots),
-                contentDescription = "More options",
-                tint = Color.White
-            )
+            IconButton(
+                onClick = onButtonClick
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ui_3_dots),
+                    contentDescription = "More options",
+                    tint = Color.White
+                )
+            }
         }
     }
 }
+

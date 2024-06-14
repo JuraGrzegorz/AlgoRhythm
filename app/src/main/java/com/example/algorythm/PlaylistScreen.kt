@@ -1,11 +1,9 @@
 import android.app.Activity
 import android.content.Context
 import android.content.pm.ActivityInfo
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import android.util.Log
-import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -27,7 +25,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.algorythm.API.getLikedMusic
-import com.example.algorythm.API.getProposedMusic
+import com.example.algorythm.API.getPlaylistMusic
 import com.example.algorythm.Music
 import com.example.algorythm.R
 import com.example.algorythm.SongItem
@@ -36,11 +34,16 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONArray
-
+import android.graphics.Bitmap
+import androidx.compose.runtime.*
+import androidx.compose.ui.graphics.asImageBitmap
+import com.example.algorythm.API.getPlaylistThumbnail
+import kotlinx.coroutines.withContext
 private const val songAmount = 100
 
+
 @Composable
-fun PlaylistScreen(playlistName: String, Id: Int) {
+fun PlaylistScreen(playlistName: String, id: Int) {
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
@@ -53,6 +56,7 @@ fun PlaylistScreen(playlistName: String, Id: Int) {
 
     var songs by remember { mutableStateOf(listOf<Song>()) }
     var selectedSong by remember { mutableStateOf<Song?>(null) }
+    var playlistThumbnail by remember { mutableStateOf<Bitmap?>(null) }
 
     LaunchedEffect(Unit) {
         coroutineScope.launch(Dispatchers.IO) {
@@ -60,7 +64,15 @@ fun PlaylistScreen(playlistName: String, Id: Int) {
                 var jwt = ""
                 jwt = sharedPref.getString("JWT", "") ?: ""
                 Log.e("jwt", jwt)
-                val data: String = getLikedMusic(songAmount, jwt)
+                var data: String = "null"
+
+                if (id == 0) {
+                    data = getLikedMusic(songAmount, jwt)
+                    println("ID STJEST 0")
+                } else {
+                    data = getPlaylistMusic(id, 0, songAmount, jwt)
+                    println("ID NIE AJEST 0" + id)
+                }
                 println(data)
                 val arr = JSONArray(data)
                 val songList = mutableListOf<Song>()
@@ -75,8 +87,16 @@ fun PlaylistScreen(playlistName: String, Id: Int) {
                     songList.add(Song(id, title, author, bitmap))
                 }
                 songs = songList
-            } catch (_: Exception) {
 
+                // Fetch playlist thumbnail
+                val thumbnailData = getPlaylistThumbnail(id, jwt)
+                val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                withContext(Dispatchers.Main) {
+                    playlistThumbnail = bitmap
+                }
+            } catch (_: Exception) {
+                // Handle error
             }
         }
     }
@@ -94,8 +114,15 @@ fun PlaylistScreen(playlistName: String, Id: Int) {
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Image(
-                        painter = painterResource(id = R.drawable.logo_placeholder),
+                    playlistThumbnail?.let {
+                        Image(
+                            bitmap = it.asImageBitmap(),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(100.dp)
+                        )
+                    } ?: Image(
+                        painter = painterResource(id = R.drawable.fav_playlist_thumnail),
                         contentDescription = null,
                         modifier = Modifier
                             .size(100.dp)
@@ -111,9 +138,7 @@ fun PlaylistScreen(playlistName: String, Id: Int) {
                         )
                     )
                 }
-
             }
-
 
             Row(
                 modifier = Modifier
@@ -166,8 +191,6 @@ fun PlaylistScreen(playlistName: String, Id: Int) {
             }
 
             Spacer(modifier = Modifier.height(16.dp))
-
-
         }
     }
 

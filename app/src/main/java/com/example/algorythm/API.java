@@ -262,4 +262,17 @@ public class API {
         }
     }
 
+    public static String getPlaylistMusic(int playlistId,int offset,int count,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/GetPlaylistMusic?playlistId="+playlistId+"&offset="+offset+"&countOfReturnedMusic="+count;
+        try{
+            String requestBody = "{}";
+            return sendGetJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+
 }

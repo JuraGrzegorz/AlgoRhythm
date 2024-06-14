@@ -52,15 +52,7 @@ fun Profile(navController: NavHostController) {
     val coroutineScope = rememberCoroutineScope()
 
     var playlists by remember { mutableStateOf(listOf<PlaylistData>()) }
-
-
-
-
-
-
-
-
-
+    var playlistThumbnails by remember { mutableStateOf(mapOf<Int, Bitmap?>()) }
 
     LaunchedEffect(Unit) {
         coroutineScope.launch(Dispatchers.IO) {
@@ -70,6 +62,7 @@ fun Profile(navController: NavHostController) {
                 val data: String = API.getUserPlaylists(100, jwt)
                 val jsonArray = JSONArray(data)
                 val fetchedPlaylists = mutableListOf<PlaylistData>()
+                val thumbnails = mutableMapOf<Int, Bitmap?>()
                 for (i in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(i)
                     val playlist = PlaylistData(
@@ -78,14 +71,22 @@ fun Profile(navController: NavHostController) {
                         countOfMusic = jsonObject.getInt("countOfMusic")
                     )
                     fetchedPlaylists.add(playlist)
+                    try {
+                        val thumbnailData = API.getPlaylistThumbnail(playlist.id, jwt)
+                        val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                        thumbnails[playlist.id] = bitmap
+                    } catch (e: Exception) {
+                        thumbnails[playlist.id] = null
+                    }
                 }
                 playlists = fetchedPlaylists // Update the state here
+                playlistThumbnails = thumbnails
             } catch (e: Exception) {
                 Log.e("Profile", "Error fetching playlists", e)
             }
         }
     }
-
 
     Box(
         modifier = Modifier
@@ -93,7 +94,6 @@ fun Profile(navController: NavHostController) {
             .background(BackgroundDarkGray)
     ) {
         Column(modifier = Modifier.fillMaxSize()) {
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -150,10 +150,11 @@ fun Profile(navController: NavHostController) {
                     .padding(16.dp)
             ) {
                 PlaylistItem(
-                    imageResId = R.drawable.fav_playlist_thumnail,
+                    bitmap = null,
+                    placeholderResId = R.drawable.fav_playlist_thumnail,
                     title = "Favourite tracks",
                     onClick = {
-                        navController.navigate("playlist/Favourite tracks/${R.drawable.fav_playlist_thumnail}")
+                        navController.navigate("playlist/Favourite tracks/${0}")
                     },
                     onButtonClick = { /* Handle button click */ }
                 )
@@ -172,22 +173,23 @@ fun Profile(navController: NavHostController) {
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-
                 println("playlisty" + playlists.size)
-                    items(playlists) { playlist ->
-                        PlaylistItem(
-                            imageResId = R.drawable.logo_placeholder,
-                            title = playlist.name,
-                            onClick = {
-                                navController.navigate("playlist/${playlist.name}/${playlist.id}")
-                            },
-                            onButtonClick = { /* Handle button click */ }
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                    }
-
+                items(playlists) { playlist ->
+                    val thumbnail = playlistThumbnails[playlist.id]
+                    PlaylistItem(
+                        bitmap = thumbnail,
+                        placeholderResId = R.drawable.logo_placeholder,
+                        title = playlist.name,
+                        onClick = {
+                            navController.navigate("playlist/${playlist.name}/${playlist.id}")
+                        },
+                        onButtonClick = { /* Handle button click */ }
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
             }
         }
     }
 }
+
 data class PlaylistData(val id: Int, val name: String, val countOfMusic: Int)

@@ -99,7 +99,7 @@ fun Music(
         val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
         val jwt = sharedPref.getString("JWT", "") ?: ""
         withContext(Dispatchers.IO) {
-            if (likeMusic(musicID, jwt) == null){
+            if (likeMusic(musicID, jwt) == null) {
                 unlikeMusic(musicID, jwt)
             }
         }
@@ -133,19 +133,13 @@ fun Music(
         Spacer(modifier = Modifier.height(10.dp))
         Box(modifier = Modifier.align(Alignment.Start)) {
             Text(
-                text = title,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White
             )
         }
         Spacer(modifier = Modifier.height(3.dp))
         Box(modifier = Modifier.align(Alignment.Start)) {
             Text(
-                text = author,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                text = author, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
@@ -154,9 +148,7 @@ fun Music(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { /* Previous track logic */ }
-            ) {
+            IconButton(onClick = { /* Previous track logic */ }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_previous_24),
                     contentDescription = "Previous",
@@ -165,16 +157,14 @@ fun Music(
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            IconButton(
-                onClick = {
-                    if (isPlaying) {
-                        mediaPlayer?.pause()
-                    } else {
-                        mediaPlayer?.start()
-                    }
-                    isPlaying = !isPlaying
+            IconButton(onClick = {
+                if (isPlaying) {
+                    mediaPlayer?.pause()
+                } else {
+                    mediaPlayer?.start()
                 }
-            ) {
+                isPlaying = !isPlaying
+            }) {
                 Image(
                     painter = if (isPlaying) painterResource(id = R.drawable.baseline_pause_circle_24) else painterResource(
                         id = R.drawable.baseline_play_circle_24
@@ -185,9 +175,7 @@ fun Music(
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            IconButton(
-                onClick = { /* Next track logic */ }
-            ) {
+            IconButton(onClick = { /* Next track logic */ }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_next_24),
                     contentDescription = "Next",
@@ -204,9 +192,7 @@ fun Music(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(
-                onClick = { /* Plus logic */ }
-            ) {
+            IconButton(onClick = { /* Plus logic */ }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_add_24),
                     contentDescription = "Plus",
@@ -215,13 +201,11 @@ fun Music(
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        handleFavoriteButton()
-                    }
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    handleFavoriteButton()
                 }
-            ) {
+            }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_fav_star_24),
                     contentDescription = "Star",
@@ -244,11 +228,18 @@ fun Music(
         )
         Spacer(modifier = Modifier.height(10.dp))
         Box(modifier = Modifier.align(Alignment.Start)) {
+            val currentMinutes = (currentPosition / 1000) / 60
+            val currentSeconds = (currentPosition / 1000) % 60
+            val durationMinutes = (duration / 1000) / 60
+            val durationSeconds = (duration / 1000) % 60
             Text(
-                text = (currentPosition / 1000).toString() + "/" + (duration / 1000).toString(),
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White
+                text = String.format(
+                    "%02d:%02d / %02d:%02d",
+                    currentMinutes,
+                    currentSeconds,
+                    durationMinutes,
+                    durationSeconds
+                ), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White
             )
         }
     }
@@ -258,4 +249,6 @@ fun Music(
             stopPlaying()
         }
     }
+
+
 }

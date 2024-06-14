@@ -24,7 +24,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -105,10 +104,10 @@ fun ScaffoldExample() {
             composable(Screens.Home.screen) { Home() }
             composable(Screens.Search.screen) { Search() }
             composable(Screens.Profile.screen) { Profile(navController = navigationController) }
-            composable("playlist/{playlistName}/{imageResId}") { backStackEntry ->
+            composable("playlist/{playlistName}/{id}") { backStackEntry ->
                 val playlistName = backStackEntry.arguments?.getString("playlistName") ?: ""
-                val Id = backStackEntry.arguments?.getString("Id")?.toInt() ?: 0
-                PlaylistScreen(playlistName = playlistName, Id = Id)
+                val id = backStackEntry.arguments?.getString("id")?.toInt() ?: 0
+                PlaylistScreen(playlistName = playlistName, id = id)
             }
         }
     }
