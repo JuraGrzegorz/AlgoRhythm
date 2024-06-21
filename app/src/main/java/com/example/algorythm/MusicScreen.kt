@@ -25,17 +25,21 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import author
+import bitmap
 import com.example.algorythm.API.likeMusic
 import com.example.algorythm.API.unlikeMusic
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import kotlinx.coroutines.*
+import musicID
+import title
 
 @Composable
 fun Music(
-    title: String,
-    author: String,
-    musicID: String,
-    bitmap: Bitmap?,
+//    title: String,
+//    author: String,
+//    musicID: String,
+//    bitmap: Bitmap?,
 ) {
     val activity = LocalContext.current as Activity
     var isPlaying by remember { mutableStateOf(false) }
@@ -121,7 +125,7 @@ fun Music(
         ) {
             if (bitmap != null) {
                 Image(
-                    bitmap = bitmap.asImageBitmap(),
+                    bitmap = bitmap!!.asImageBitmap(),
                     contentDescription = "MusicImg",
                     contentScale = ContentScale.FillBounds,
                     modifier = Modifier

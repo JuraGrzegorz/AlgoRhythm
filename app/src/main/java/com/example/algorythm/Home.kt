@@ -22,8 +22,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
+import androidx.navigation.NavHostController
 import com.example.algorythm.API.getProposedMusic
 import com.example.algorythm.Music
+import com.example.algorythm.Screens
 import com.example.algorythm.SongItem
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
@@ -33,20 +36,25 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 
 private const val songAmount = 10
+var title = ""
+var author = ""
+var musicID = ""
+var bitmap : Bitmap? = null
+//var selectedSong by remember { mutableStateOf<Song?>(null) }
 
 @Composable
-fun Home() {
+fun Home(navController: NavHostController) {
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+
     val username = sharedPref.getString("username","") ?:""
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
     val context = LocalContext.current
     (context as? Activity)?.requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-
     var songs by remember { mutableStateOf(listOf<Song>()) }
     var selectedSong by remember { mutableStateOf<Song?>(null) }
 
@@ -158,7 +166,13 @@ fun Home() {
     }
 
     selectedSong?.let {
-        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
+        title = it.title
+        author = it.author
+        musicID = it.id
+        bitmap = it.thumbnail
+//        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
+        navController.navigate(Screens.Music.screen)
+        selectedSong = null
     }
 }
 

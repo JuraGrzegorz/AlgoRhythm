@@ -37,13 +37,15 @@ import org.json.JSONArray
 import android.graphics.Bitmap
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.asImageBitmap
+import androidx.navigation.NavController
 import com.example.algorythm.API.getPlaylistThumbnail
+import com.example.algorythm.Screens
 import kotlinx.coroutines.withContext
 private const val songAmount = 100
 
 
 @Composable
-fun PlaylistScreen(playlistName: String, id: Int) {
+fun PlaylistScreen(navController: NavController, playlistName: String, id: Int) {
     val activity = LocalContext.current as Activity
     val coroutineScope = rememberCoroutineScope()
     val systemUiController = rememberSystemUiController()
@@ -195,6 +197,12 @@ fun PlaylistScreen(playlistName: String, id: Int) {
     }
 
     selectedSong?.let {
-        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
+        title = it.title
+        author = it.author
+        musicID = it.id
+        bitmap = it.thumbnail
+//        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
+        navController.navigate(Screens.Music.screen)
+        selectedSong = null
     }
 }

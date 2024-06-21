@@ -101,14 +101,15 @@ fun ScaffoldExample() {
             startDestination = Screens.Home.screen,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Screens.Home.screen) { Home() }
-            composable(Screens.Search.screen) { Search() }
+            composable(Screens.Home.screen) { Home(navController = navigationController) }
+            composable(Screens.Search.screen) { Search(navController = navigationController) }
             composable(Screens.Profile.screen) { Profile(navController = navigationController) }
             composable("playlist/{playlistName}/{id}") { backStackEntry ->
                 val playlistName = backStackEntry.arguments?.getString("playlistName") ?: ""
                 val id = backStackEntry.arguments?.getString("id")?.toInt() ?: 0
-                PlaylistScreen(playlistName = playlistName, id = id)
+                PlaylistScreen(navController = navigationController,playlistName = playlistName, id = id)
             }
+            composable(Screens.Music.screen) {  Music() }
         }
     }
 }

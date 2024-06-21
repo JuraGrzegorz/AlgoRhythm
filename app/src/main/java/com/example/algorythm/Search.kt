@@ -26,9 +26,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavController
 import com.example.algorythm.API.getGenres
 import com.example.algorythm.API.getMusicByTitle
 import com.example.algorythm.Music
+import com.example.algorythm.Screens
 import com.example.algorythm.SongItem
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.GenreItem
@@ -102,7 +104,7 @@ fun Bitmap.toByteArray(): ByteArray {
 }
 
 @Composable
-fun Search() {
+fun Search(navController: NavController) {
     val activity = LocalContext.current as Activity
     val systemUiController = rememberSystemUiController()
     systemUiController.setSystemBarsColor(
@@ -335,6 +337,12 @@ fun Search() {
     }
 
     selectedSong?.let {
-        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
+        title = it.title
+        author = it.author
+        musicID = it.id
+        bitmap = it.thumbnail
+//        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
+        navController.navigate(Screens.Music.screen)
+        selectedSong = null
     }
 }

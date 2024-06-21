@@ -25,12 +25,6 @@ fun SignInNavigation(){
         composable(Screens.SignInScreen.screen) { SignInScreen(navigationController) }
         composable(Screens.SignUpScreen.screen) { SignUpScreen(navigationController) }
         composable(Screens.Home.screen) { ScaffoldExample()}
-        composable(Screens.Music.screen) {  Music(
-            title = "title",
-            author = "author",
-            musicID = "15",
-            bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888),
-        ) }
         composable(Screens.Reset1.screen) { ResetPass1(navigationController) }
         composable(Screens.Reset2.screen) { ResetPass2(navigationController) }
     }
