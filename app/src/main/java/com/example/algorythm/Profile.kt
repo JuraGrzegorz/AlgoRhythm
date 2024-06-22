@@ -23,6 +23,8 @@ import com.example.algorythm.ui.theme.MainTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -151,12 +153,15 @@ fun Profile(navController: NavHostController) {
             ) {
                 PlaylistItem(
                     bitmap = null,
+                    id = "null",
                     placeholderResId = R.drawable.fav_playlist_thumnail,
                     title = "Favourite tracks",
+
                     onClick = {
                         navController.navigate("playlist/Favourite tracks/${0}")
                     },
-                    onButtonClick = { /* Handle button click */ }
+                    onButtonClick = { /* Handle button click */ },
+                    showDeleteOption = false
                 )
             }
 
@@ -178,12 +183,14 @@ fun Profile(navController: NavHostController) {
                     val thumbnail = playlistThumbnails[playlist.id]
                     PlaylistItem(
                         bitmap = thumbnail,
+                        id = playlist.id.toString(),
                         placeholderResId = R.drawable.logo_placeholder,
                         title = playlist.name,
                         onClick = {
                             navController.navigate("playlist/${playlist.name}/${playlist.id}")
                         },
-                        onButtonClick = { /* Handle button click */ }
+                        onButtonClick = {},
+                        showDeleteOption = true
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }

@@ -16,15 +16,35 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
-fun SongItem(bitmap: Bitmap?, title: String, author: String, onClick: () -> Unit) {
+fun SongItem(
+    bitmap: Bitmap?,
+    title: String,
+    author: String,
+    views: String,
+    likes: String,
+    playlistId: String,
+    onClick: () -> Unit,
+    onLongClick: () -> Unit
+) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(4.dp)
             .clip(RectangleShape)
-            .clickable(onClick = onClick)
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onLongPress = {
+                        onLongClick()
+                    },
+                    onTap = {
+                        onClick()
+                    }
+                )
+            }
             .padding(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -62,5 +82,5 @@ fun SongItem(bitmap: Bitmap?, title: String, author: String, onClick: () -> Unit
             )
         }
     }
-
 }
+

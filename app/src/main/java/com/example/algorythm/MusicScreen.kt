@@ -1,14 +1,18 @@
 package com.example.algorythm
 
-import android.graphics.Bitmap
 import android.app.Activity
 import android.content.Context
 import android.media.MediaPlayer
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
@@ -25,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
 import author
 import bitmap
 import com.example.algorythm.API.likeMusic
@@ -32,14 +37,26 @@ import com.example.algorythm.API.unlikeMusic
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import kotlinx.coroutines.*
 import musicID
+import org.json.JSONArray
 import title
+
+
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.window.Dialog
+import likes
+import views
+
 
 @Composable
 fun Music(
-//    title: String,
-//    author: String,
-//    musicID: String,
-//    bitmap: Bitmap?,
+    // title: String,
+    // author: String,
+    // musicID: String,
+    // bitmap: Bitmap?,
+    //playlistID: Int = -1
+
 ) {
     val activity = LocalContext.current as Activity
     var isPlaying by remember { mutableStateOf(false) }
@@ -49,6 +66,15 @@ fun Music(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
+
+    var showDialog by remember { mutableStateOf(false) }
+    var playlists by remember { mutableStateOf(listOf<PlaylistData>()) }
+    var showInputDialog by remember { mutableStateOf(false) }
+    var newPlaylistName by remember { mutableStateOf(TextFieldValue("")) }
+    var isMusicLiked  by remember { mutableStateOf("false") }
+
+
+
     fun startSeekBarUpdate() {
         coroutineScope.launch {
             while (mediaPlayer?.isPlaying == true) {
@@ -57,6 +83,7 @@ fun Music(
             }
         }
     }
+
 
     fun startPlaying(url: String) {
         if (mediaPlayer == null) {
@@ -87,15 +114,24 @@ fun Music(
         isPlaying = false
     }
 
+
+
     LaunchedEffect(musicID) {
         withContext(Dispatchers.IO) {
             try {
                 val musicUrl =
-                    "https://thewebapiserver20240424215817.azurewebsites.net/test/GetMusicData?songId=$musicID"
+                    "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
                 startPlaying(musicUrl)
             } catch (e: Exception) {
                 Log.e("Music", "Error starting music", e)
             }
+
+            withContext(Dispatchers.IO) {
+                val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                val jwt = sharedPref.getString("JWT", "") ?: ""
+                isMusicLiked = API.isLiked(musicID, jwt)
+            }
+
         }
     }
 
@@ -105,6 +141,45 @@ fun Music(
         withContext(Dispatchers.IO) {
             if (likeMusic(musicID, jwt) == null) {
                 unlikeMusic(musicID, jwt)
+                isMusicLiked = "false"
+            }
+            else{
+                isMusicLiked= "true"
+            }
+        }
+
+    }
+
+    fun getPlaylists() {
+        coroutineScope.launch {
+            try {
+                val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                val jwt = sharedPref.getString("JWT", "") ?: ""
+
+                // Ensure the network call is on the IO dispatcher
+                val data: String = withContext(Dispatchers.IO) {
+                    API.getUserPlaylists(100, jwt)
+                }
+                val jsonArray = JSONArray(data)
+                val fetchedPlaylists = mutableListOf<PlaylistData>()
+                for (i in 0 until jsonArray.length()) {
+                    val jsonObject = jsonArray.getJSONObject(i)
+                    val playlist = PlaylistData(
+                        id = jsonObject.getInt("id"),
+                        name = jsonObject.getString("name"),
+                        countOfMusic = jsonObject.getInt("countOfMusic")
+                    )
+                    fetchedPlaylists.add(playlist)
+                }
+                playlists = fetchedPlaylists
+                (playlists as MutableList<PlaylistData>).add(
+                    PlaylistData(
+                        id = 0, name = "New Playlist", countOfMusic = 1
+                    )
+                )
+
+            } catch (e: Exception) {
+                Log.e("Music", "Error fetching playlists", e)
             }
         }
     }
@@ -135,6 +210,30 @@ fun Music(
             }
         }
         Spacer(modifier = Modifier.height(10.dp))
+        Box(modifier = Modifier.align(Alignment.Start)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = views + " views",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+                Text(
+                    text = likes + " likes",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+
+        }
+
         Box(modifier = Modifier.align(Alignment.Start)) {
             Text(
                 text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White
@@ -196,7 +295,11 @@ fun Music(
             horizontalArrangement = Arrangement.End,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { /* Plus logic */ }) {
+            IconButton(onClick = {
+                getPlaylists()
+                showDialog = true
+
+            }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_add_24),
                     contentDescription = "Plus",
@@ -205,17 +308,28 @@ fun Music(
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            IconButton(onClick = {
-                coroutineScope.launch {
-                    handleFavoriteButton()
+            IconButton(
+                onClick = {
+                    coroutineScope.launch {
+                        handleFavoriteButton()
+                    }
                 }
-            }) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_fav_star_24),
-                    contentDescription = "Star",
-                    modifier = Modifier.size(50.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
+            ) {
+                if (isMusicLiked == "true") {
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_fav_star_24),
+                        contentDescription = "Star",
+                        modifier = Modifier.size(50.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_unfav_star_24),
+                        contentDescription = "Star",
+                        modifier = Modifier.size(50.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(20.dp))
@@ -226,6 +340,11 @@ fun Music(
                 mediaPlayer?.seekTo(newPosition)
                 currentPosition = newPosition
             },
+            colors = SliderDefaults.colors(
+                thumbColor = Color.White,
+                activeTrackColor = Color.White,
+                inactiveTrackColor = Color.White.copy(alpha = 0.5f)
+            ),
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
@@ -248,11 +367,140 @@ fun Music(
         }
     }
 
+    if (showDialog) {
+        PlaylistDialog(playlists = playlists,
+            onDismissRequest = { showDialog = false },
+            onPlaylistClick = { playlistId, playlistName ->
+                if (playlistId != 0) {
+                    coroutineScope.launch {
+                        val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                        val jwt = sharedPref.getString("JWT", "") ?: ""
+                        withContext(Dispatchers.IO) {
+                            API.addToPlaylist(playlistId, musicID, jwt)
+                        }
+
+                        showDialog = false
+                        Toast.makeText(
+                            context, "Song added to playlist " + playlistName, Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+
+                } else {
+                    showInputDialog = true
+                    showDialog = false
+                }
+            })
+    }
+
+    if (showInputDialog) {
+        NewPlaylistDialog(newPlaylistName = newPlaylistName,
+            onNameChange = { newPlaylistName = it },
+            onDismissRequest = { showInputDialog = false },
+            onCreatePlaylist = {
+                coroutineScope.launch {
+                    val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                    val jwt = sharedPref.getString("JWT", "") ?: ""
+
+                    withContext(Dispatchers.IO) {
+                        API.createPlaylist(newPlaylistName.text, musicID, jwt)
+                    }
+
+                    showInputDialog = false
+                }
+            })
+    }
+
     DisposableEffect(Unit) {
         onDispose {
             stopPlaying()
         }
     }
+}
 
+@Composable
+fun PlaylistDialog(
+    playlists: List<PlaylistData>,
+    onDismissRequest: () -> Unit,
+    onPlaylistClick: (Int, String) -> Unit
+) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            Column {
+                Text(
+                    text = "Select Playlist",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                LazyColumn {
+                    items(playlists) { playlist ->
+                        Text(text = playlist.name,
+                            fontSize = 16.sp,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    onPlaylistClick(playlist.id, playlist.name)
+                                }
+                                .padding(vertical = 8.dp))
+                    }
+                }
+            }
+        }
+    }
+}
 
+@Composable
+fun NewPlaylistDialog(
+    newPlaylistName: TextFieldValue,
+    onNameChange: (TextFieldValue) -> Unit,
+    onDismissRequest: () -> Unit,
+    onCreatePlaylist: () -> Unit
+) {
+    Dialog(onDismissRequest = onDismissRequest) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            Column {
+                Text(
+                    text = "New Playlist",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                BasicTextField(
+                    value = newPlaylistName,
+                    onValueChange = onNameChange,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.LightGray)
+                        .padding(8.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Row(
+                    modifier = Modifier.align(Alignment.End)
+                ) {
+                    Text(text = "Cancel",
+                        modifier = Modifier
+                            .clickable { onDismissRequest() }
+                            .padding(8.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Create",
+                        modifier = Modifier
+                            .clickable { onCreatePlaylist() }
+                            .padding(8.dp))
+                }
+            }
+        }
+    }
 }

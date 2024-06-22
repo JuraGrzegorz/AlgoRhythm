@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.example.algorythm.API.getProposedMusic
 import com.example.algorythm.Music
+import com.example.algorythm.PlaylistData
 import com.example.algorythm.Screens
 import com.example.algorythm.SongItem
 import com.example.algorythm.ui.theme.BackgroundDarkGray
@@ -39,8 +40,9 @@ private const val songAmount = 10
 var title = ""
 var author = ""
 var musicID = ""
-var bitmap : Bitmap? = null
-//var selectedSong by remember { mutableStateOf<Song?>(null) }
+var bitmap: Bitmap? = null
+var views = ""
+var likes = ""
 
 @Composable
 fun Home(navController: NavHostController) {
@@ -49,7 +51,7 @@ fun Home(navController: NavHostController) {
     val systemUiController = rememberSystemUiController()
     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
 
-    val username = sharedPref.getString("username","") ?:""
+    val username = sharedPref.getString("username", "") ?: ""
     systemUiController.setSystemBarsColor(
         color = Color.Black
     )
@@ -62,9 +64,9 @@ fun Home(navController: NavHostController) {
         coroutineScope.launch(Dispatchers.IO) {
             try {
                 var jwt = ""
-                jwt = sharedPref.getString("JWT","") ?:""
-                Log.e("jwt",jwt)
-                val data: String = getProposedMusic(songAmount,jwt)
+                jwt = sharedPref.getString("JWT", "") ?: ""
+                Log.e("jwt", jwt)
+                val data: String = getProposedMusic(songAmount, jwt)
                 println(data)
                 val arr = JSONArray(data)
                 val songList = mutableListOf<Song>()
@@ -74,9 +76,11 @@ fun Home(navController: NavHostController) {
                     val title = obj.getString("title")
                     val author = obj.getString("artistName")
                     val thumbnailData = obj.getString("thumbnailData")
+                    val views = obj.getString("views")
+                    val likes = obj.getString("likes")
                     val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
                     val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-                    songList.add(Song(id, title, author, bitmap))
+                    songList.add(Song(id, title, author, bitmap, views, likes, "null"))
                 }
                 songs = songList
             } catch (_: Exception) {
@@ -145,8 +149,14 @@ fun Home(navController: NavHostController) {
                     SongItem(bitmap = song.thumbnail,
                         title = song.title,
                         author = song.author,
+                        views = song.views,
+                        likes = song.likes,
+                        playlistId = "null",
                         onClick = {
                             selectedSong = song
+                        },
+                        onLongClick = {
+
                         })
                     Spacer(modifier = Modifier.height(16.dp))
                 }
@@ -170,10 +180,20 @@ fun Home(navController: NavHostController) {
         author = it.author
         musicID = it.id
         bitmap = it.thumbnail
+        views = it.views
+        likes = it.likes
 //        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
         navController.navigate(Screens.Music.screen)
         selectedSong = null
     }
 }
 
-data class Song(val id: String, val title: String, val author: String, val thumbnail: Bitmap?)
+data class Song(
+    val id: String,
+    val title: String,
+    val author: String,
+    val thumbnail: Bitmap?,
+    val views: String,
+    val likes: String,
+    val playlistid: String
+)

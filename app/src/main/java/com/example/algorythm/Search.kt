@@ -89,9 +89,11 @@ fun getSavedSongs(context: Context): List<Song> {
         val title = obj.getString("title")
         val author = obj.getString("author")
         val thumbnailData = obj.getString("thumbnailData")
+        val view = obj.getString("view")
+        val likes = obj.getString("likes")
         val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        songList.add(Song(id, title, author, bitmap))
+        songList.add(Song(id, title, author, bitmap, view, likes, "null"))
     }
 
     return songList.asReversed()
@@ -144,7 +146,6 @@ fun Search(navController: NavController) {
                     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
                     jwt = sharedPref.getString("JWT","") ?:""
                     val data: String = getMusicByTitle(searchText, songAmount,jwt, currentGenre)
-                    println(currentGenre)
                     val arr = JSONArray(data)
                     val songList = mutableListOf<Song>()
                     for (i in 0 until arr.length()) {
@@ -153,9 +154,11 @@ fun Search(navController: NavController) {
                         val title = obj.getString("title")
                         val author = obj.getString("artistName")
                         val thumbnailData = obj.getString("thumbnailData")
+                        val views = obj.getString("views")
+                        val likes = obj.getString("likes")
                         val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
                         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-                        songList.add(Song(id, title, author, bitmap))
+                        songList.add(Song(id, title, author, bitmap, views, likes, "null"))
                     }
                     songs = songList
                 } else {
@@ -182,10 +185,12 @@ fun Search(navController: NavController) {
                         val id = obj.getString("id")
                         val title = obj.getString("title")
                         val author = obj.getString("artistName")
+                        val views = obj.getString("views")
+                        val likes = obj.getString("likes")
                         val thumbnailData = obj.getString("thumbnailData")
                         val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
                         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-                        songList.add(Song(id, title, author, bitmap))
+                        songList.add(Song(id, title, author, bitmap, views,likes, "null" ))
                     }
                     songs = songList
                 }
@@ -265,10 +270,16 @@ fun Search(navController: NavController) {
                         SongItem(bitmap = song.thumbnail,
                             title = song.title,
                             author = song.author,
+                            views = song.views,
+                            likes = song.likes,
+                            playlistId = "null",
                             onClick = {
                                 keyboardController?.hide()
                                 saveSong(context, song)
                                 selectedSong = song
+                            },
+                            onLongClick = {
+
                             })
                         Spacer(modifier = Modifier.height(16.dp))
                     }
@@ -319,10 +330,17 @@ fun Search(navController: NavController) {
                             SongItem(bitmap = song.thumbnail,
                                 title = song.title,
                                 author = song.author,
+                                views = song.views,
+                                likes = song.likes,
+                                playlistId = "null",
+
                                 onClick = {
                                     keyboardController?.hide()
                                     saveSong(context, song)
                                     selectedSong = song
+                                },
+                                onLongClick = {
+
                                 })
                             Spacer(modifier = Modifier.height(16.dp))
                         }
@@ -341,8 +359,13 @@ fun Search(navController: NavController) {
         author = it.author
         musicID = it.id
         bitmap = it.thumbnail
+        views = it.views
+        likes = it.likes
 //        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
         navController.navigate(Screens.Music.screen)
         selectedSong = null
     }
+
+
+
 }

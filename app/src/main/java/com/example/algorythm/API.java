@@ -170,11 +170,11 @@ public class API {
             return res;
         }
         catch (Exception e){
-            return "FAILED TO FETCH DATA";
+            return "FAILED TO FETCH DATA" + e;
         }
     }
 
-    public static String createPlaylist(String playlistName,int id,String jwt) throws IOException {
+    public static String createPlaylist(String playlistName,String id,String jwt) throws IOException {
         String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/CreatePlayList?playlistName="+playlistName+"&musicId="+id;
         try{
             String requestBody = "{\"playlistName\":\"" + playlistName + "\",\"musicId\":" + id + "}";
@@ -186,15 +186,16 @@ public class API {
             return null;
         }
     }
-    public static String addToPlaylist(int playlistID,int songID,String jwt) throws IOException {
+    public static String addToPlaylist(int playlistID,String songID,String jwt) throws IOException {
         String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/AddSongToPlaylist?playlistId="+playlistID+"&musicId="+songID;
+        System.out.println(apiUrl);
         try{
             String requestBody = "{\"playlistId\":\"" + playlistID + "\",\"musicId\":\"" + songID + "\"}";
             return sendPostJWT(apiUrl,requestBody,jwt);
         }
         catch (Exception e){
             e.getStackTrace();
-            System.out.println(e);
+            System.out.println(e + "NIE DZIALA");
             return null;
         }
     }
@@ -274,5 +275,52 @@ public class API {
             return null;
         }
     }
+
+    public static String isLiked(String ID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/IsLiked?musicId="+ID;
+        try{
+            String requestBody = "{}";
+            return sendGetJWT(apiUrl,requestBody,jwt);
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+
+
+    public static boolean deleteFromPlaylist(String playlistID, String musicID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/DelSongFromPlaylist?playlistId="+playlistID+"&musicId="+musicID;
+        try{
+            String requestBody = "{}";
+            String res = sendPostJWT(apiUrl,requestBody,jwt);
+            if (res.equals("User registered successfully."))
+                return true;
+            else
+                return false;
+        }
+        catch (Exception e){
+            return false;
+        }
+    }
+
+    public static boolean deletePlaylist(String playlistID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/DelPlaylist?playlistId="+playlistID;
+        try{
+            String requestBody = "{}";
+            String res = sendPostJWT(apiUrl,requestBody,jwt);
+            if (res.equals("User registered successfully."))
+                return true;
+            else
+                return false;
+        }
+        catch (Exception e){
+            System.out.println("Can't delete " + e);
+            return false;
+        }
+    }
+
+
 
 }
