@@ -121,16 +121,17 @@ public class API {
         JsonNode rootNode = objectMapper.readTree(jsonString);
         return rootNode.get("userName").asText();
     }
-    public static String getMusic(int id, String password,String jwt) throws IOException {
-        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusic";
+    public static String getMusic(String id,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusic?MusicId=" + id;
+
+        System.out.println(apiUrl);
         try{
-            String requestBody = "{\"musicId\":\"" + id + "\",\"socketId\":\"" + password + "\"}";
-            return sendPostJWT(apiUrl,requestBody,jwt);
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            return res;
         }
         catch (Exception e){
-            e.getStackTrace();
-            System.out.println(e);
-            return null;
+            return "FAILED TO FETCH DATA" + e;
         }
     }
     public static String getProposedMusic(int count,String jwt){

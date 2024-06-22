@@ -1,8 +1,11 @@
 package com.example.algorythm
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
+import android.graphics.BitmapFactory
 import android.media.MediaPlayer
+import android.util.Base64
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -36,28 +39,23 @@ import com.example.algorythm.API.likeMusic
 import com.example.algorythm.API.unlikeMusic
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import kotlinx.coroutines.*
-import musicID
 import org.json.JSONArray
-import title
-
-
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.window.Dialog
 import likes
+import musicID
+import org.json.JSONObject
+import title
+import toByteArray
 import views
 
+private const val PLAYED_SONGS_PREFS = "played_songs_prefs"
+private const val PLAYED_SONGS_KEY = "played_songs_key"
+private const val MAX_SONGS = 10
 
+@SuppressLint("DefaultLocale")
 @Composable
-fun Music(
-    // title: String,
-    // author: String,
-    // musicID: String,
-    // bitmap: Bitmap?,
-    //playlistID: Int = -1
-
-) {
+fun Music() {
     val activity = LocalContext.current as Activity
     var isPlaying by remember { mutableStateOf(false) }
     var mediaPlayer by remember { mutableStateOf<MediaPlayer?>(null) }
@@ -66,14 +64,13 @@ fun Music(
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
 
-
     var showDialog by remember { mutableStateOf(false) }
     var playlists by remember { mutableStateOf(listOf<PlaylistData>()) }
     var showInputDialog by remember { mutableStateOf(false) }
     var newPlaylistName by remember { mutableStateOf(TextFieldValue("")) }
-    var isMusicLiked  by remember { mutableStateOf("false") }
+    var isMusicLiked by remember { mutableStateOf("false") }
 
-
+    var musicID by remember { mutableStateOf( musicID) }
 
     fun startSeekBarUpdate() {
         coroutineScope.launch {
@@ -84,9 +81,9 @@ fun Music(
         }
     }
 
-
     fun startPlaying(url: String) {
         if (mediaPlayer == null) {
+            println("EFEKT NULL")
             mediaPlayer = MediaPlayer().apply {
                 setDataSource(url)
                 setOnPreparedListener {
@@ -101,6 +98,7 @@ fun Music(
                 prepareAsync()
             }
         } else {
+            println("EFEKT NO NULL")
             mediaPlayer?.start()
             isPlaying = true
             startSeekBarUpdate()
@@ -114,13 +112,11 @@ fun Music(
         isPlaying = false
     }
 
-
-
     LaunchedEffect(musicID) {
+        println("EFFEKT " + musicID)
         withContext(Dispatchers.IO) {
             try {
-                val musicUrl =
-                    "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+                val musicUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
                 startPlaying(musicUrl)
             } catch (e: Exception) {
                 Log.e("Music", "Error starting music", e)
@@ -132,8 +128,17 @@ fun Music(
                 isMusicLiked = API.isLiked(musicID, jwt)
             }
 
+            savePlayedSong(context, PlayedSong(
+                id = musicID,
+                title = title,
+                author = author,
+                thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
+                views = views,
+                likes = likes
+            ))
         }
     }
+
 
     suspend fun handleFavoriteButton() {
         val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
@@ -142,12 +147,10 @@ fun Music(
             if (likeMusic(musicID, jwt) == null) {
                 unlikeMusic(musicID, jwt)
                 isMusicLiked = "false"
-            }
-            else{
-                isMusicLiked= "true"
+            } else {
+                isMusicLiked = "true"
             }
         }
-
     }
 
     fun getPlaylists() {
@@ -156,7 +159,6 @@ fun Music(
                 val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
                 val jwt = sharedPref.getString("JWT", "") ?: ""
 
-                // Ensure the network call is on the IO dispatcher
                 val data: String = withContext(Dispatchers.IO) {
                     API.getUserPlaylists(100, jwt)
                 }
@@ -231,7 +233,6 @@ fun Music(
                     color = Color.White
                 )
             }
-
         }
 
         Box(modifier = Modifier.align(Alignment.Start)) {
@@ -251,7 +252,26 @@ fun Music(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = { /* Previous track logic */ }) {
+            IconButton(onClick = {
+                coroutineScope.launch(Dispatchers.IO) {
+                    val mostRecentSong = loadMostRecentPlayedSong(context)
+
+                    if (mostRecentSong != null) {
+                        stopPlaying()
+                        musicID = mostRecentSong.id
+                        title = mostRecentSong.title
+                        author = mostRecentSong.author
+                        views = mostRecentSong.views
+                        likes = mostRecentSong.likes
+
+                        val imageBytes = Base64.decode(mostRecentSong.thumbnailData, Base64.DEFAULT)
+                        bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+
+                    }
+                }
+            })
+            {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_previous_24),
                     contentDescription = "Previous",
@@ -278,7 +298,49 @@ fun Music(
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            IconButton(onClick = { /* Next track logic */ }) {
+            IconButton(onClick = {
+                /* Next track logic */
+
+                stopPlaying()
+                coroutineScope.launch(Dispatchers.IO) {
+                    try {
+                        val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                        val jwt = sharedPref.getString("JWT", "") ?: ""
+                        val data: String = API.getProposedMusic(1, jwt)
+                        val arr = JSONArray(data)
+                        for (i in 0 until arr.length()) {
+                            val obj = arr.getJSONObject(i)
+                            val nextid = obj.getString("id")
+                            val nextTitle = obj.getString("title")
+                            val nextAuthor = obj.getString("artistName")
+                            val thumbnailData = obj.getString("thumbnailData")
+                            val nextViews = obj.getString("views")
+                            val nextLikes = obj.getString("likes")
+                            val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                            val nextBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+                            musicID = nextid
+                            title = nextTitle
+                            author = nextAuthor
+                            views = nextViews
+                            likes = nextLikes
+                            bitmap = nextBitmap
+                        }
+
+
+
+
+                    }catch (_: Exception) {
+
+                }
+                    }
+
+
+
+
+
+
+            }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_next_24),
                     contentDescription = "Next",
@@ -298,7 +360,6 @@ fun Music(
             IconButton(onClick = {
                 getPlaylists()
                 showDialog = true
-
             }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_add_24),
@@ -384,8 +445,6 @@ fun Music(
                             context, "Song added to playlist " + playlistName, Toast.LENGTH_SHORT
                         ).show()
                     }
-
-
                 } else {
                     showInputDialog = true
                     showDialog = false
@@ -454,6 +513,66 @@ fun PlaylistDialog(
             }
         }
     }
+}
+
+data class PlayedSong(
+    val id: String,
+    val title: String,
+    val author: String,
+    val thumbnailData: String,
+    val views: String,
+    val likes: String
+)
+
+fun loadMostRecentPlayedSong(context: Context): PlayedSong? {
+    val prefs = context.getSharedPreferences(PLAYED_SONGS_PREFS, Context.MODE_PRIVATE)
+    val songsJson = prefs.getString(PLAYED_SONGS_KEY, null) ?: return null
+    val songsArray = JSONArray(songsJson)
+
+    if (songsArray.length() == 0) return null
+
+    val mostRecentSong = songsArray.getJSONObject(songsArray.length() - 2)
+    return PlayedSong(
+        id = mostRecentSong.getString("id"),
+        title = mostRecentSong.getString("title"),
+        author = mostRecentSong.getString("author"),
+        thumbnailData = mostRecentSong.getString("thumbnailData"),
+        views = mostRecentSong.getString("views"),
+        likes = mostRecentSong.getString("likes")
+    )
+}
+
+fun savePlayedSong(context: Context, song: PlayedSong) {
+    val prefs = context.getSharedPreferences(PLAYED_SONGS_PREFS, Context.MODE_PRIVATE)
+    val editor = prefs.edit()
+
+    val songsJson = prefs.getString(PLAYED_SONGS_KEY, "[]")
+    val songsArray = JSONArray(songsJson)
+
+    for (i in 0 until songsArray.length()) {
+        val existingSong = songsArray.getJSONObject(i)
+        if (existingSong.getString("id") == song.id) {
+            songsArray.remove(i)
+            break
+        }
+    }
+
+    if (songsArray.length() >= MAX_SONGS) {
+        songsArray.remove(0)
+    }
+
+    val songJson = JSONObject().apply {
+        put("id", song.id)
+        put("title", song.title)
+        put("author", song.author)
+        put("thumbnailData", song.thumbnailData)
+        put("views", song.views)
+        put("likes", song.likes)
+    }
+    songsArray.put(songJson)
+
+    editor.putString(PLAYED_SONGS_KEY, songsArray.toString())
+    editor.apply()
 }
 
 @Composable
