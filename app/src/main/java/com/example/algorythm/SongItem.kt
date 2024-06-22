@@ -17,6 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.input.pointer.pointerInput
 
 @Composable
@@ -56,6 +57,8 @@ fun SongItem(
                     .size(70.dp)
                     .clip(RectangleShape)
                     .background(Color.White)
+                    .clip(RoundedCornerShape(2.dp))
+
             )
         } else {
             Image(

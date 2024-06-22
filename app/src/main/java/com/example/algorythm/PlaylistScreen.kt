@@ -34,6 +34,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
 import android.graphics.Bitmap
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.navigation.NavController
 import com.example.algorythm.API
@@ -125,6 +127,7 @@ fun PlaylistScreen(navController: NavController, playlistName: String, id: Int) 
                             bitmap = it.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier.size(100.dp)
+                                .clip(RoundedCornerShape(8.dp))
                         )
                     } ?: Image(
                         painter = painterResource(id = R.drawable.fav_playlist_thumnail),

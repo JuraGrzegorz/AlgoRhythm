@@ -457,6 +457,7 @@ fun Music() {
             onNameChange = { newPlaylistName = it },
             onDismissRequest = { showInputDialog = false },
             onCreatePlaylist = {
+                showInputDialog = false
                 coroutineScope.launch {
                     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
                     val jwt = sharedPref.getString("JWT", "") ?: ""
@@ -465,7 +466,7 @@ fun Music() {
                         API.createPlaylist(newPlaylistName.text, musicID, jwt)
                     }
 
-                    showInputDialog = false
+
                 }
             })
     }
@@ -487,7 +488,7 @@ fun PlaylistDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(Color.Black)
                 .padding(16.dp)
         ) {
             Column {
@@ -495,19 +496,23 @@ fun PlaylistDialog(
                     text = "Select Playlist",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 LazyColumn {
                     items(playlists) { playlist ->
-                        Text(text = playlist.name,
+                        Text(
+                            text = playlist.name,
                             fontSize = 16.sp,
+                            color = Color.White,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .clickable {
                                     onPlaylistClick(playlist.id, playlist.name)
                                 }
-                                .padding(vertical = 8.dp))
+                                .padding(vertical = 8.dp)
+                        )
                     }
                 }
             }
@@ -586,7 +591,7 @@ fun NewPlaylistDialog(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Color.White)
+                .background(Color.Black)
                 .padding(16.dp)
         ) {
             Column {
@@ -594,6 +599,7 @@ fun NewPlaylistDialog(
                     text = "New Playlist",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
+                    color = Color.White,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
@@ -602,22 +608,28 @@ fun NewPlaylistDialog(
                     onValueChange = onNameChange,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .background(Color.LightGray)
+                        .background(Color.DarkGray)
                         .padding(8.dp)
                 )
                 Spacer(modifier = Modifier.height(16.dp))
                 Row(
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(text = "Cancel",
+                    Text(
+                        text = "Cancel",
+                        color = Color.White,
                         modifier = Modifier
                             .clickable { onDismissRequest() }
-                            .padding(8.dp))
+                            .padding(8.dp)
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(text = "Create",
+                    Text(
+                        text = "Create",
+                        color = Color.White,
                         modifier = Modifier
                             .clickable { onCreatePlaylist() }
-                            .padding(8.dp))
+                            .padding(8.dp)
+                    )
                 }
             }
         }
