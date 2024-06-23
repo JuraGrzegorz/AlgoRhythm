@@ -275,4 +275,20 @@ public class API {
         }
     }
 
+    public static Map<String,String> googleTokenVerification(String token) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Identity/LoginByGoogle";
+        try{
+            String requestBody = "{\"token\":\"" + token + "\"}";
+            Map<String,String> res = new HashMap<>();
+            res.put("token",extractToken(sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN")));
+            res.put("username",extractUsername(sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN")));
+            return res;
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println("FAILED TO LOGIN");
+            return null;
+        }
+    }
+
 }

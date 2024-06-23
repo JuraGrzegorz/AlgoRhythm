@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.algorythm"
-        minSdk = 26
+        minSdk = 30
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -70,6 +70,11 @@ dependencies {
     implementation(libs.logback.classic)
     implementation(libs.log4j.core)
     implementation(libs.okhttp3.okhttp)
+    implementation(libs.androidx.credentials)
+    implementation(libs.androidx.credentials.play.services.auth)
+    implementation(libs.googleid)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
