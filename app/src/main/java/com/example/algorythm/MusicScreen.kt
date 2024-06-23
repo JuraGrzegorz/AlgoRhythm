@@ -134,7 +134,7 @@ fun Music() {
         }
 
         val filter = IntentFilter(ForegroundService.ACTION_POSITION_UPDATE)
-        context.registerReceiver(reciever, filter)
+        context.registerReceiver(reciever, filter, Context.RECEIVER_EXPORTED)
 
         onDispose {
             context.unbindService(serviceConnection)

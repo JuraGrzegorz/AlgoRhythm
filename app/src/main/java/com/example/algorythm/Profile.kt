@@ -118,13 +118,21 @@ fun Profile(navController: NavHostController) {
                 )
 
                 IconButton(
-                    onClick = { /* Handle button click */ },
+                    onClick = {
+                        val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                        with (sharedPref.edit()) {
+                            putString("JWT", "")
+                            putString("username", "")
+                            apply()
+                        }
+                        restartApp(activity)
+                              },
                     modifier = Modifier
                         .padding(16.dp)
                         .align(Alignment.TopEnd)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ui_settings),
+                        painter = painterResource(id = R.drawable.baseline_logout_24),
                         contentDescription = "More options",
                         tint = Color.White,
                         modifier = Modifier.size(50.dp)

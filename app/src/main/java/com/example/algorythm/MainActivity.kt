@@ -1,5 +1,8 @@
 package com.example.algorythm
 
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -30,4 +33,11 @@ class MainActivity : ComponentActivity() {
             }
         }
     }
+}
+
+fun restartApp(context: Context) {
+    val intent = context.packageManager.getLaunchIntentForPackage(context.packageName)
+    intent?.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+    context.startActivity(intent)
+    (context as? Activity)?.finish()
 }
