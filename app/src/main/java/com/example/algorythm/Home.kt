@@ -43,6 +43,8 @@ var musicID = ""
 var bitmap: Bitmap? = null
 var views = ""
 var likes = ""
+var duration = ""
+var currentPosition = ""
 
 @Composable
 fun Home(navController: NavHostController) {

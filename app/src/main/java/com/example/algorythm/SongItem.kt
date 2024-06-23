@@ -57,6 +57,7 @@ fun SongItem(
                     .size(70.dp)
                     .clip(RectangleShape)
                     .background(Color.White)
+                    .fillMaxSize()
                     .clip(RoundedCornerShape(2.dp))
 
             )

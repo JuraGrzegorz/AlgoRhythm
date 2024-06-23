@@ -67,6 +67,7 @@ fun PlaylistItem(
                         contentDescription = null,
                         modifier = Modifier
                             .size(64.dp)
+                            .fillMaxSize()
                             .clip(RoundedCornerShape(2.dp))
                     )
                 } ?: Image(
@@ -74,6 +75,7 @@ fun PlaylistItem(
                     contentDescription = null,
                     modifier = Modifier
                         .size(64.dp)
+                        .fillMaxSize()
                         .clip(RoundedCornerShape(2.dp))
                 )
             }

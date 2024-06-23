@@ -205,6 +205,7 @@ public class API {
         System.out.println(apiUrl);
         try{
             String requestBody = "{}";
+            System.out.println(jwt);
             return sendPostJWT(apiUrl,requestBody,jwt);
         }
         catch (Exception e){
@@ -277,11 +278,16 @@ public class API {
         }
     }
 
-    public static String isLiked(String ID,String jwt) throws IOException {
+    public static Boolean isLiked(String ID,String jwt) throws IOException {
         String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/IsLiked?musicId="+ID;
         try{
             String requestBody = "{}";
-            return sendGetJWT(apiUrl,requestBody,jwt);
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            if(res.equals("true")){
+                return true;
+            } else {
+                return false;
+            }
         }
         catch (Exception e){
             e.getStackTrace();

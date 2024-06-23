@@ -2,9 +2,15 @@ package com.example.algorythm
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.BroadcastReceiver
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
+import android.content.ServiceConnection
 import android.graphics.BitmapFactory
 import android.media.MediaPlayer
+import android.os.IBinder
 import android.util.Base64
 import android.util.Log
 import android.widget.Toast
@@ -63,14 +69,35 @@ fun Music() {
     var duration by remember { mutableStateOf(0) }
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
     var showDialog by remember { mutableStateOf(false) }
     var playlists by remember { mutableStateOf(listOf<PlaylistData>()) }
     var showInputDialog by remember { mutableStateOf(false) }
     var newPlaylistName by remember { mutableStateOf(TextFieldValue("")) }
-    var isMusicLiked by remember { mutableStateOf("false") }
+    var isMusicLiked by remember { mutableStateOf(false) }
 
-    var musicID by remember { mutableStateOf( musicID) }
+    var musicID by remember { mutableStateOf(musicID) }
+
+    val serviceConnection = remember {
+        object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+                val binder = service as ForegroundService.LocalBinder
+                val foregroundService = binder.getService()
+                mediaPlayer = foregroundService.getMediaPlayer()
+            }
+
+            override fun onServiceDisconnected(name: ComponentName?) {
+                mediaPlayer = null
+            }
+        }
+    }
+
+    fun sendCommandToService(action: String, url: String? = null) {
+        val serviceIntent = Intent(context, ForegroundService::class.java).apply {
+            this.action = action
+            url?.let { putExtra(ForegroundService.EXTRA_URL, it) }
+        }
+        context.startService(serviceIntent)
+    }
 
     fun startSeekBarUpdate() {
         coroutineScope.launch {
@@ -81,80 +108,80 @@ fun Music() {
         }
     }
 
-    fun startPlaying(url: String) {
-        if (mediaPlayer == null) {
-            println("EFEKT NULL")
-            mediaPlayer = MediaPlayer().apply {
-                setDataSource(url)
-                setOnPreparedListener {
-                    start()
-                    duration = mediaPlayer?.duration ?: 0
-                    isPlaying = true
-                    startSeekBarUpdate()
-                }
-                setOnCompletionListener {
-                    isPlaying = false
-                }
-                prepareAsync()
+    fun stopPlayback() {
+        mediaPlayer?.let {
+            if (it.isPlaying) {
+                it.stop()
             }
-        } else {
-            println("EFEKT NO NULL")
-            mediaPlayer?.start()
-            isPlaying = true
-            startSeekBarUpdate()
+            it.reset()
+            it.release()
+            currentPosition = 0
+            mediaPlayer = null
         }
     }
 
-    fun stopPlaying() {
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-        mediaPlayer = null
-        isPlaying = false
+    DisposableEffect(Unit) {
+        val serviceIntent = Intent(context, ForegroundService::class.java)
+        context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
+
+        val reciever = object : BroadcastReceiver(){
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if(intent?.action == ForegroundService.ACTION_POSITION_UPDATE){
+                    currentPosition = intent.getIntExtra(ForegroundService.EXTRA_POSITION, 0)
+                    duration = intent.getIntExtra(ForegroundService.EXTRA_DURATION, 0);
+                }
+            }
+        }
+
+        val filter = IntentFilter(ForegroundService.ACTION_POSITION_UPDATE)
+        context.registerReceiver(reciever, filter)
+
+        onDispose {
+            context.unbindService(serviceConnection)
+            context.unregisterReceiver(reciever)
+            sendCommandToService(ForegroundService.ACTION_STOP)
+            mediaPlayer = null
+        }
     }
 
     LaunchedEffect(musicID) {
-        println("EFFEKT " + musicID)
+        println("EFFEKT $musicID")
         withContext(Dispatchers.IO) {
-            try {
-                val musicUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
-                startPlaying(musicUrl)
-            } catch (e: Exception) {
-                Log.e("Music", "Error starting music", e)
-            }
-
-            withContext(Dispatchers.IO) {
-                val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
-                val jwt = sharedPref.getString("JWT", "") ?: ""
-                isMusicLiked = API.isLiked(musicID, jwt)
-            }
-
-            savePlayedSong(context, PlayedSong(
-                id = musicID,
-                title = title,
-                author = author,
-                thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
-                views = views,
-                likes = likes
-            ))
+            val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+            val jwt = sharedPref.getString("JWT", "") ?: ""
+            isMusicLiked = API.isLiked(musicID, jwt)
+            Log.e("isMusicLiked", isMusicLiked.toString())
         }
+        sendCommandToService(
+            ForegroundService.ACTION_START,
+            "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+        )
+        isPlaying = true;
     }
-
 
     suspend fun handleFavoriteButton() {
         val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
         val jwt = sharedPref.getString("JWT", "") ?: ""
         withContext(Dispatchers.IO) {
-            if (likeMusic(musicID, jwt) == null) {
+
+            if(API.isLiked(musicID, jwt)){
                 unlikeMusic(musicID, jwt)
-                isMusicLiked = "false"
+                isMusicLiked = false
             } else {
-                isMusicLiked = "true"
+                likeMusic(musicID, jwt)
+                isMusicLiked = true
             }
         }
     }
 
     fun getPlaylists() {
         coroutineScope.launch {
+            val fetchedPlaylists = mutableListOf<PlaylistData>()
+            fetchedPlaylists.add(
+                PlaylistData(
+                    id = 0, name = "New Playlist", countOfMusic = 1
+                )
+            )
             try {
                 val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
                 val jwt = sharedPref.getString("JWT", "") ?: ""
@@ -163,7 +190,6 @@ fun Music() {
                     API.getUserPlaylists(100, jwt)
                 }
                 val jsonArray = JSONArray(data)
-                val fetchedPlaylists = mutableListOf<PlaylistData>()
                 for (i in 0 until jsonArray.length()) {
                     val jsonObject = jsonArray.getJSONObject(i)
                     val playlist = PlaylistData(
@@ -173,16 +199,11 @@ fun Music() {
                     )
                     fetchedPlaylists.add(playlist)
                 }
-                playlists = fetchedPlaylists
-                (playlists as MutableList<PlaylistData>).add(
-                    PlaylistData(
-                        id = 0, name = "New Playlist", countOfMusic = 1
-                    )
-                )
 
             } catch (e: Exception) {
                 Log.e("Music", "Error fetching playlists", e)
             }
+            playlists = fetchedPlaylists
         }
     }
 
@@ -257,7 +278,7 @@ fun Music() {
                     val mostRecentSong = loadMostRecentPlayedSong(context)
 
                     if (mostRecentSong != null) {
-                        stopPlaying()
+                        stopPlayback()
                         musicID = mostRecentSong.id
                         title = mostRecentSong.title
                         author = mostRecentSong.author
@@ -266,12 +287,9 @@ fun Music() {
 
                         val imageBytes = Base64.decode(mostRecentSong.thumbnailData, Base64.DEFAULT)
                         bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-
-
                     }
                 }
-            })
-            {
+            }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_previous_24),
                     contentDescription = "Previous",
@@ -300,8 +318,6 @@ fun Music() {
             Spacer(modifier = Modifier.width(10.dp))
             IconButton(onClick = {
                 /* Next track logic */
-
-                stopPlaying()
                 coroutineScope.launch(Dispatchers.IO) {
                     try {
                         val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
@@ -317,7 +333,8 @@ fun Music() {
                             val nextViews = obj.getString("views")
                             val nextLikes = obj.getString("likes")
                             val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
-                            val nextBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                            val nextBitmap =
+                                BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
                             musicID = nextid
                             title = nextTitle
@@ -325,21 +342,18 @@ fun Music() {
                             views = nextViews
                             likes = nextLikes
                             bitmap = nextBitmap
+
+                            withContext(Dispatchers.Main) {
+                                // Send command to the service to play the next track
+                                sendCommandToService(
+                                    ForegroundService.ACTION_START,
+                                    "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+                                )
+                            }
                         }
-
-
-
-
-                    }catch (_: Exception) {
-
-                }
+                    } catch (_: Exception) {
                     }
-
-
-
-
-
-
+                }
             }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_next_24),
@@ -376,7 +390,7 @@ fun Music() {
                     }
                 }
             ) {
-                if (isMusicLiked == "true") {
+                if (isMusicLiked) {
                     Image(
                         painter = painterResource(id = R.drawable.baseline_fav_star_24),
                         contentDescription = "Star",
@@ -398,7 +412,13 @@ fun Music() {
             value = if (duration > 0) currentPosition / duration.toFloat() else 0f,
             onValueChange = { newValue ->
                 val newPosition = (newValue * duration).toInt()
-                mediaPlayer?.seekTo(newPosition)
+
+                val seekIntent = Intent(context, ForegroundService::class.java).apply{
+                    action = ForegroundService.ACTION_SEEK
+                    putExtra(ForegroundService.EXTRA_POSITION, newPosition)
+                }
+
+                context.startService(seekIntent)
                 currentPosition = newPosition
             },
             colors = SliderDefaults.colors(
@@ -442,7 +462,7 @@ fun Music() {
 
                         showDialog = false
                         Toast.makeText(
-                            context, "Song added to playlist " + playlistName, Toast.LENGTH_SHORT
+                            context, "Song added to playlist $playlistName", Toast.LENGTH_SHORT
                         ).show()
                     }
                 } else {
@@ -465,16 +485,8 @@ fun Music() {
                     withContext(Dispatchers.IO) {
                         API.createPlaylist(newPlaylistName.text, musicID, jwt)
                     }
-
-
                 }
             })
-    }
-
-    DisposableEffect(Unit) {
-        onDispose {
-            stopPlaying()
-        }
     }
 }
 

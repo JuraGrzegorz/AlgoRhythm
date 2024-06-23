@@ -127,6 +127,7 @@ fun PlaylistScreen(navController: NavController, playlistName: String, id: Int) 
                             bitmap = it.asImageBitmap(),
                             contentDescription = null,
                             modifier = Modifier.size(100.dp)
+                                .fillMaxSize()
                                 .clip(RoundedCornerShape(8.dp))
                         )
                     } ?: Image(
