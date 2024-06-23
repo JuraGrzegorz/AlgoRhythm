@@ -1,5 +1,6 @@
 package com.example.algorythm
 
+import Song
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.BroadcastReceiver
@@ -8,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.ServiceConnection
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaPlayer
 import android.os.IBinder
@@ -152,6 +154,16 @@ fun Music() {
             isMusicLiked = API.isLiked(musicID, jwt)
             Log.e("isMusicLiked", isMusicLiked.toString())
         }
+
+        savePlayedSong(context, PlayedSong(
+            id = musicID,
+            title = title,
+            author = author,
+            thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
+            views = views,
+            likes = likes
+        ))
+
         sendCommandToService(
             ForegroundService.ACTION_START,
             "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
@@ -276,18 +288,38 @@ fun Music() {
             IconButton(onClick = {
                 coroutineScope.launch(Dispatchers.IO) {
                     val mostRecentSong = loadMostRecentPlayedSong(context)
-
+                    Log.e("PreviousTrack", "Before if");
                     if (mostRecentSong != null) {
-                        stopPlayback()
                         musicID = mostRecentSong.id
                         title = mostRecentSong.title
                         author = mostRecentSong.author
                         views = mostRecentSong.views
                         likes = mostRecentSong.likes
 
+                        Log.e("PreviousTrack in if", musicID);
+
                         val imageBytes = Base64.decode(mostRecentSong.thumbnailData, Base64.DEFAULT)
                         bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+                        withContext(Dispatchers.Main) {
+                            // Send command to the service to play the next track
+                            sendCommandToService(
+                                ForegroundService.ACTION_START,
+                                "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+                            )
+                        }
+
+                        savePlayedSong(context, PlayedSong(
+                            id = musicID,
+                            title = title,
+                            author = author,
+                            thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
+                            views = views,
+                            likes = likes
+                        ))
+
                     }
+                    Log.e("PreviousTrack", "After if");
                 }
             }) {
                 Image(
@@ -353,6 +385,14 @@ fun Music() {
                         }
                     } catch (_: Exception) {
                     }
+                    savePlayedSong(context, PlayedSong(
+                        id = musicID,
+                        title = title,
+                        author = author,
+                        thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
+                        views = views,
+                        likes = likes
+                    ))
                 }
             }) {
                 Image(

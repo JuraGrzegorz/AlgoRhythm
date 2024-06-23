@@ -21,8 +21,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONArray
 import android.util.Base64
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.delay
 import kotlin.io.encoding.ExperimentalEncodingApi
+
+private const val PLAYED_SONGS_PREFS = "played_songs_prefs"
+private const val PLAYED_SONGS_KEY = "played_songs_key"
 
 class ForegroundService : Service() {
 
@@ -115,6 +119,9 @@ class ForegroundService : Service() {
             }
             ACTION_NEXT -> {
                 nextTrack()
+            }
+            ACTION_PREVIOUS -> {
+                previousTrack()
             }
             ACTION_SEEK->{
                 val position = intent.getIntExtra(EXTRA_POSITION, 0)
@@ -259,6 +266,55 @@ class ForegroundService : Service() {
         }
     }
 
+    private fun previousTrack(){
+        coroutineScope.launch {
+            try {
+                val prefs = getSharedPreferences(PLAYED_SONGS_PREFS, Context.MODE_PRIVATE)
+                val songsJson = prefs.getString(PLAYED_SONGS_KEY, null) ?: ""
+                val songsArray = JSONArray(songsJson)
+
+                if (songsArray.length() != 0) {
+
+                    val mostRecentSong = songsArray.getJSONObject(songsArray.length() - 2)
+
+                    val previd = mostRecentSong.getString("id")
+                    val prevtitle = mostRecentSong.getString("title")
+                    val prevauthor = mostRecentSong.getString("author")
+                    val prevthumbnailData = mostRecentSong.getString("thumbnailData")
+                    val prevViews = mostRecentSong.getString("views")
+                    val prevLikes = mostRecentSong.getString("likes")
+
+                    val prevImageBytes = Base64.decode(prevthumbnailData, Base64.DEFAULT)
+                    val prevBitmap =
+                        BitmapFactory.decodeByteArray(prevImageBytes, 0, prevImageBytes.size)
+
+                    playMusic(previd)
+
+                    val metadata = MediaMetadataCompat.Builder()
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, prevtitle)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, prevauthor)
+                        .putLong(
+                            MediaMetadataCompat.METADATA_KEY_DURATION,
+                            mediaPlayer?.duration?.toLong() ?: 0L
+                        )
+                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, prevBitmap)
+                        .build()
+                    mediaSession.setMetadata(metadata)
+
+                    notificationBuilder.setContentTitle(prevtitle)
+                        .setContentText(prevauthor)
+                        .setLargeIcon(prevBitmap)
+
+                    // Aktualizacja powiadomienia
+                    updateNotification()
+
+                }
+            } catch (e: Exception){
+                e.printStackTrace()
+            }
+        }
+    }
+
     fun getMediaPlayer(): MediaPlayer? {
         return mediaPlayer
     }
@@ -271,6 +327,7 @@ class ForegroundService : Service() {
         const val ACTION_RESUME = "ACTION_RESUME"
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_NEXT = "ACTION_NEXT"
+        const val ACTION_PREVIOUS = "ACTION_PREVIOUS"
         const val EXTRA_URL = "EXTRA_URL"
 
         const val ACTION_SEEK = "ACTION_SEEK"

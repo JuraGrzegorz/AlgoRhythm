@@ -81,8 +81,6 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
 
     implementation("androidx.navigation:navigation-compose:2.7.7")
-//    implementation("androidx.media3:media-session:1.3.2")
-//    implementation("androidx.media3:media-widget:1.3.2")
 
     val composeBom = platform("androidx.compose:compose-bom:2024.04.01")
     implementation(composeBom)
