@@ -226,28 +226,38 @@ fun SignInScreen(navController: NavController) {
 
                     val  googleIdToken = googleIdTokenCredential.idToken
 
-                    val map = API.googleTokenVerification(googleIdToken)
-                    loggedin = !map.isNullOrEmpty()
-                    withContext(Dispatchers.Main) {
-                        if (loggedin) {
-                            val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
-                            with (sharedPref.edit()) {
-                                putString("JWT", map["token"])
-                                putString("username", map["username"])
-                                apply()
+                    withContext(Dispatchers.IO) {
+                        try {
+
+                            val map = API.googleTokenVerification(googleIdToken)
+                            loggedin = !map.isNullOrEmpty()
+                            withContext(Dispatchers.Main) {
+                                if (loggedin) {
+                                    val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                                    with (sharedPref.edit()) {
+                                        putString("JWT", map["token"])
+                                        putString("username", map["username"])
+                                        apply()
+                                    }
+                                    navController.navigate(Screens.Home.screen)
+                                } else {
+                                    Toast.makeText(
+                                        context,
+                                        "Login failed. Please check your credentials.",
+                                        Toast.LENGTH_SHORT
+                                    ).show()
+                                }
                             }
-                            navController.navigate(Screens.Home.screen)
-                        } else {
-                            Toast.makeText(
-                                context,
-                                "Login failed. Please check your credentials.",
-                                Toast.LENGTH_SHORT
-                            ).show()
+                        } catch (e: Exception) {
+                            withContext(Dispatchers.Main) {
+                                Toast.makeText(
+                                    context,
+                                    "An error occurred: ${e.message}",
+                                    Toast.LENGTH_SHORT
+                                ).show()
+                            }
                         }
-                    Log.e("dziala",googleIdToken)
-
-
-                }
+                    }
                 }
                 catch (e : GetCredentialException)
                 {

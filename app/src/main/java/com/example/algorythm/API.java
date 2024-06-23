@@ -280,12 +280,13 @@ public class API {
         try{
             String requestBody = "{\"token\":\"" + token + "\"}";
             Map<String,String> res = new HashMap<>();
-            res.put("token",extractToken(sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN")));
-            res.put("username",extractUsername(sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN")));
+            String ress = sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN");
+            res.put("token",extractToken(ress));
+            res.put("username",extractUsername(ress));
             return res;
         }
         catch (Exception e){
-            e.getStackTrace();
+            System.out.println(e);
             System.out.println("FAILED TO LOGIN");
             return null;
         }
