@@ -148,31 +148,6 @@ fun PlaylistScreen(navController: NavController, playlistName: String, id: Int) 
                     )
                 }
             }
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.SpaceAround
-            ) {
-                IconButton(onClick = { /* Share functionality */ }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_share_24),
-                        contentDescription = "Share",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-                IconButton(onClick = { /* Play functionality */ }) {
-                    Icon(
-                        painter = painterResource(id = R.drawable.baseline_play_circle_24),
-                        contentDescription = "Play",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-
             HorizontalDivider(
                 modifier = Modifier
                     .fillMaxWidth()

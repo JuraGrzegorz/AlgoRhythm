@@ -429,5 +429,7 @@ class ForegroundService : Service() {
         const val ACTION_POSITION_UPDATE = "ACTION_POSITION_UPDATE"
         const val EXTRA_POSITION = "EXTRA_POSITION"
         const val EXTRA_DURATION = "EXTRA_DURATION"
+        const val ACTION_FORWARD_10 = "ACTION_FORWARD_10"
+        const val ACTION_REWIND_10 = "ACTION_REWIND_10"
     }
 }

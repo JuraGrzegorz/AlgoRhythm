@@ -49,7 +49,9 @@ import com.example.algorythm.ui.theme.BackgroundDarkGray
 import kotlinx.coroutines.*
 import org.json.JSONArray
 import androidx.compose.material3.SliderDefaults
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.input.TextFieldValue
+import com.example.algorythm.ui.theme.MainTheme
 import currentPlaylistId
 import likes
 import musicID
@@ -129,9 +131,9 @@ fun Music() {
         val serviceIntent = Intent(context, ForegroundService::class.java)
         context.bindService(serviceIntent, serviceConnection, Context.BIND_AUTO_CREATE)
 
-        val reciever = object : BroadcastReceiver(){
+        val reciever = object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
-                if(intent?.action == ForegroundService.ACTION_POSITION_UPDATE){
+                if (intent?.action == ForegroundService.ACTION_POSITION_UPDATE) {
                     currentPosition = intent.getIntExtra(ForegroundService.EXTRA_POSITION, 0)
                     duration = intent.getIntExtra(ForegroundService.EXTRA_DURATION, 0);
                 }
@@ -158,14 +160,14 @@ fun Music() {
             Log.e("isMusicLiked", isMusicLiked.toString())
         }
 
-        if(currentPlaylistId != -1) {
+        if (currentPlaylistId != -1) {
             Log.e("LaunchedEffect", "Inside if -1")
             withContext(Dispatchers.IO) {
                 Log.e("LaunchedEffect", "In dispatcher")
                 val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
                 val jwt = sharedPref.getString("JWT", "") ?: ""
-                var data : String = ""
-                if(currentPlaylistId != 0) {
+                var data: String = ""
+                if (currentPlaylistId != 0) {
                     data = API.getPlaylistMusic(currentPlaylistId, 0, 10, jwt)
                 } else {
                     data = API.getLikedMusic(10, jwt)
@@ -182,17 +184,10 @@ fun Music() {
                     val likes = obj.getString("likes")
                     val playlistId = currentPlaylistId
                     val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
-                    val bitmap =
-                        BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                    val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
                     songList.add(
                         Song(
-                            songId,
-                            title,
-                            author,
-                            bitmap,
-                            views,
-                            likes,
-                            playlistId.toString()
+                            songId, title, author, bitmap, views, likes, playlistId.toString()
                         )
                     )
                 }
@@ -204,14 +199,16 @@ fun Music() {
             }
         }
 
-        savePlayedSong(context, PlayedSong(
-            id = musicID,
-            title = title,
-            author = author,
-            thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
-            views = views,
-            likes = likes
-        ))
+        savePlayedSong(
+            context, PlayedSong(
+                id = musicID,
+                title = title,
+                author = author,
+                thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
+                views = views,
+                likes = likes
+            )
+        )
 
         sendCommandToService(
             ForegroundService.ACTION_START,
@@ -225,7 +222,7 @@ fun Music() {
         val jwt = sharedPref.getString("JWT", "") ?: ""
         withContext(Dispatchers.IO) {
 
-            if(API.isLiked(musicID, jwt)){
+            if (API.isLiked(musicID, jwt)) {
                 unlikeMusic(musicID, jwt)
                 isMusicLiked = false
             } else {
@@ -276,24 +273,7 @@ fun Music() {
             .background(BackgroundDarkGray)
             .padding(horizontal = 20.dp)
     ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .padding(vertical = 16.dp)
-                .size(300.dp)
-        ) {
-            if (bitmap != null) {
-                Image(
-                    bitmap = bitmap!!.asImageBitmap(),
-                    contentDescription = "MusicImg",
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(RoundedCornerShape(8.dp))
-                )
-            }
-        }
-        Spacer(modifier = Modifier.height(10.dp))
+
         Box(modifier = Modifier.align(Alignment.Start)) {
             Row(
                 modifier = Modifier
@@ -317,93 +297,214 @@ fun Music() {
             }
         }
 
-        Box(modifier = Modifier.align(Alignment.Start)) {
+        Spacer(modifier = Modifier.height(10.dp))
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .padding(vertical = 16.dp)
+                .size(300.dp)
+        ) {
+            if (bitmap != null) {
+                Image(
+                    bitmap = bitmap!!.asImageBitmap(),
+                    contentDescription = "MusicImg",
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .shadow(
+                            elevation = 15.dp,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(8.dp))
+
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Text(
+            text = title, fontSize = 30.sp, fontWeight = FontWeight.Bold, color = Color.White
+        )
+        Text(
+            text = author, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White
+        )
+        Spacer(modifier = Modifier.height(10.dp))
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 20.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(onClick = {
+                getPlaylists()
+                showDialog = true
+            }) {
+                Image(
+                    painter = painterResource(id = R.drawable.baseline_add_24),
+                    contentDescription = "Plus",
+                    modifier = Modifier.size(50.dp),
+                    colorFilter = ColorFilter.tint(Color.White)
+                )
+            }
+            Spacer(modifier = Modifier.width(10.dp))
+            IconButton(onClick = {
+                coroutineScope.launch {
+                    handleFavoriteButton()
+                }
+            }) {
+                if (isMusicLiked) {
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_fav_star_24),
+                        contentDescription = "Star",
+                        modifier = Modifier.size(30.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = R.drawable.baseline_unfav_star_24),
+                        contentDescription = "Star",
+                        modifier = Modifier.size(30.dp),
+                        colorFilter = ColorFilter.tint(Color.White)
+                    )
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(10.dp))
+        Slider(
+            value = if (duration > 0) currentPosition / duration.toFloat() else 0f,
+            onValueChange = { newValue ->
+                val newPosition = (newValue * duration).toInt()
+
+                val seekIntent = Intent(context, ForegroundService::class.java).apply {
+                    action = ForegroundService.ACTION_SEEK
+                    putExtra(ForegroundService.EXTRA_POSITION, newPosition)
+                }
+
+                context.startService(seekIntent)
+                currentPosition = newPosition
+            },
+            colors = SliderDefaults.colors(
+                thumbColor = Color.White,
+                activeTrackColor = MainTheme,
+                inactiveTrackColor = Color.White.copy(alpha = 0.5f)
+            ),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp)
+        )
+        Spacer(modifier = Modifier.height(5.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            val currentMinutes = (currentPosition / 1000) / 60
+            val currentSeconds = (currentPosition / 1000) % 60
+            val durationMinutes = (duration / 1000) / 60
+            val durationSeconds = (duration / 1000) % 60
+
             Text(
-                text = title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White
+                text = String.format(
+                    "%02d:%02d", currentMinutes, currentSeconds
+                ), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White
+            )
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            Text(
+                text = String.format(
+                    "%02d:%02d", durationMinutes, durationSeconds
+                ), fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White
             )
         }
-        Spacer(modifier = Modifier.height(3.dp))
-        Box(modifier = Modifier.align(Alignment.Start)) {
-            Text(
-                text = author, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = Color.White
-            )
-        }
+
+
         Spacer(modifier = Modifier.height(10.dp))
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            IconButton(onClick = {
-                coroutineScope.launch(Dispatchers.IO) {
-                    val mostRecentSong = loadMostRecentPlayedSong(context)
-                    Log.e("PreviousTrack", "Before if");
-                    if (mostRecentSong != null) {
-                        musicID = mostRecentSong.id
-                        title = mostRecentSong.title
-                        author = mostRecentSong.author
-                        views = mostRecentSong.views
-                        likes = mostRecentSong.likes
+            IconButton(modifier = Modifier
+                .height(100.dp)
+                .width(70.dp),
 
-                        Log.e("PreviousTrack in if", musicID);
+                onClick = {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        val mostRecentSong = loadMostRecentPlayedSong(context)
+                        Log.e("PreviousTrack", "Before if");
+                        if (mostRecentSong != null) {
+                            musicID = mostRecentSong.id
+                            title = mostRecentSong.title
+                            author = mostRecentSong.author
+                            views = mostRecentSong.views
+                            likes = mostRecentSong.likes
 
-                        val imageBytes = Base64.decode(mostRecentSong.thumbnailData, Base64.DEFAULT)
-                        bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                            Log.e("PreviousTrack in if", musicID);
 
-                        withContext(Dispatchers.Main) {
-                            // Send command to the service to play the next track
-                            sendCommandToService(
-                                ForegroundService.ACTION_START,
-                                "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+                            val imageBytes =
+                                Base64.decode(mostRecentSong.thumbnailData, Base64.DEFAULT)
+                            bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+
+                            withContext(Dispatchers.Main) {
+                                // Send command to the service to play the next track
+                                sendCommandToService(
+                                    ForegroundService.ACTION_START,
+                                    "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+                                )
+                            }
+
+                            savePlayedSong(
+                                context, PlayedSong(
+                                    id = musicID,
+                                    title = title,
+                                    author = author,
+                                    thumbnailData = Base64.encodeToString(
+                                        bitmap?.toByteArray(), Base64.DEFAULT
+                                    ),
+                                    views = views,
+                                    likes = likes
+                                )
                             )
+
                         }
-
-                        savePlayedSong(context, PlayedSong(
-                            id = musicID,
-                            title = title,
-                            author = author,
-                            thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
-                            views = views,
-                            likes = likes
-                        ))
-
+                        Log.e("PreviousTrack", "After if");
                     }
-                    Log.e("PreviousTrack", "After if");
-                }
-            }) {
+                }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_previous_24),
                     contentDescription = "Previous",
-                    modifier = Modifier.size(120.dp),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            IconButton(onClick = {
+            IconButton(modifier = Modifier.size(100.dp), onClick = {
                 if (isPlaying) {
                     mediaPlayer?.pause()
                 } else {
                     mediaPlayer?.start()
                 }
                 isPlaying = !isPlaying
-            }) {
+            }
+
+            ) {
                 Image(
                     painter = if (isPlaying) painterResource(id = R.drawable.baseline_pause_circle_24) else painterResource(
                         id = R.drawable.baseline_play_circle_24
                     ),
                     contentDescription = if (isPlaying) "Pause" else "Play",
-                    modifier = Modifier.size(180.dp),
+                    modifier = Modifier.fillMaxSize(1.0F),  // Zwiększono szerokość przycisku
                     colorFilter = ColorFilter.tint(Color.White)
                 )
             }
             Spacer(modifier = Modifier.width(10.dp))
-            IconButton(onClick = {
+            IconButton(modifier = Modifier
+                .height(100.dp)
+                .width(70.dp), onClick = {
                 /* Next track logic */
                 Log.e("NextTrackButton", "Outside coroutine")
                 coroutineScope.launch(Dispatchers.Main) {
                     Log.e("NextTrackButton", "Inside coroutine")
                     try {
-                        if(currentPlaylistId == -1) {
+                        if (currentPlaylistId == -1) {
                             withContext(Dispatchers.IO) {
                                 Log.e("NextTrackFromPLaylist", "In -1 if")
                                 val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
@@ -420,12 +521,9 @@ fun Music() {
                                     val nextViews = obj.getString("views")
                                     val nextLikes = obj.getString("likes")
                                     val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
-                                    val nextBitmap =
-                                        BitmapFactory.decodeByteArray(
-                                            imageBytes,
-                                            0,
-                                            imageBytes.size
-                                        )
+                                    val nextBitmap = BitmapFactory.decodeByteArray(
+                                        imageBytes, 0, imageBytes.size
+                                    )
                                     Log.e("NextTrackFromPLaylist", "In for after getting data")
                                     musicID = nextid
                                     title = nextTitle
@@ -445,9 +543,9 @@ fun Music() {
                             }
                         } else {
                             var indexToRemove = songs.indexOfFirst { it.id == musicID }
-                            if (indexToRemove != -1){
+                            if (indexToRemove != -1) {
                                 songs.removeAt(indexToRemove)
-                                if(songs.size != 0) {
+                                if (songs.size != 0) {
                                     musicID = if (indexToRemove < songs.size) {
                                         songs[indexToRemove].id
                                     } else {
@@ -484,8 +582,7 @@ fun Music() {
                                         indexToRemove = 0
                                         songs[indexToRemove].thumbnail
                                     }
-                                }
-                                else {
+                                } else {
                                     songs = songsCopy
                                     musicID = if (indexToRemove < songs.size) {
                                         songs[indexToRemove].id
@@ -537,107 +634,30 @@ fun Music() {
                         }
                     } catch (_: Exception) {
                     }
-                    savePlayedSong(context, PlayedSong(
-                        id = musicID,
-                        title = title,
-                        author = author,
-                        thumbnailData = Base64.encodeToString(bitmap?.toByteArray(), Base64.DEFAULT),
-                        views = views,
-                        likes = likes
-                    ))
+                    savePlayedSong(
+                        context, PlayedSong(
+                            id = musicID,
+                            title = title,
+                            author = author,
+                            thumbnailData = Base64.encodeToString(
+                                bitmap?.toByteArray(), Base64.DEFAULT
+                            ),
+                            views = views,
+                            likes = likes
+                        )
+                    )
                 }
             }) {
                 Image(
                     painter = painterResource(id = R.drawable.baseline_skip_next_24),
                     contentDescription = "Next",
-                    modifier = Modifier.size(120.dp),
+                    //  modifier = Modifier.size(1000.dp),
                     colorFilter = ColorFilter.tint(Color.White)
                 )
             }
         }
-        Spacer(modifier = Modifier.height(10.dp))
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = 20.dp),
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            IconButton(onClick = {
-                getPlaylists()
-                showDialog = true
-            }) {
-                Image(
-                    painter = painterResource(id = R.drawable.baseline_add_24),
-                    contentDescription = "Plus",
-                    modifier = Modifier.size(50.dp),
-                    colorFilter = ColorFilter.tint(Color.White)
-                )
-            }
-            Spacer(modifier = Modifier.width(10.dp))
-            IconButton(
-                onClick = {
-                    coroutineScope.launch {
-                        handleFavoriteButton()
-                    }
-                }
-            ) {
-                if (isMusicLiked) {
-                    Image(
-                        painter = painterResource(id = R.drawable.baseline_fav_star_24),
-                        contentDescription = "Star",
-                        modifier = Modifier.size(50.dp),
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
-                } else {
-                    Image(
-                        painter = painterResource(id = R.drawable.baseline_unfav_star_24),
-                        contentDescription = "Star",
-                        modifier = Modifier.size(50.dp),
-                        colorFilter = ColorFilter.tint(Color.White)
-                    )
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(20.dp))
-        Slider(
-            value = if (duration > 0) currentPosition / duration.toFloat() else 0f,
-            onValueChange = { newValue ->
-                val newPosition = (newValue * duration).toInt()
 
-                val seekIntent = Intent(context, ForegroundService::class.java).apply{
-                    action = ForegroundService.ACTION_SEEK
-                    putExtra(ForegroundService.EXTRA_POSITION, newPosition)
-                }
 
-                context.startService(seekIntent)
-                currentPosition = newPosition
-            },
-            colors = SliderDefaults.colors(
-                thumbColor = Color.White,
-                activeTrackColor = Color.White,
-                inactiveTrackColor = Color.White.copy(alpha = 0.5f)
-            ),
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp)
-        )
-        Spacer(modifier = Modifier.height(10.dp))
-        Box(modifier = Modifier.align(Alignment.Start)) {
-            val currentMinutes = (currentPosition / 1000) / 60
-            val currentSeconds = (currentPosition / 1000) % 60
-            val durationMinutes = (duration / 1000) / 60
-            val durationSeconds = (duration / 1000) % 60
-            Text(
-                text = String.format(
-                    "%02d:%02d / %02d:%02d",
-                    currentMinutes,
-                    currentSeconds,
-                    durationMinutes,
-                    durationSeconds
-                ), fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White
-            )
-        }
     }
 
     if (showDialog) {
@@ -706,8 +726,7 @@ fun PlaylistDialog(
                 Spacer(modifier = Modifier.height(16.dp))
                 LazyColumn {
                     items(playlists) { playlist ->
-                        Text(
-                            text = playlist.name,
+                        Text(text = playlist.name,
                             fontSize = 16.sp,
                             color = Color.White,
                             modifier = Modifier
@@ -715,8 +734,7 @@ fun PlaylistDialog(
                                 .clickable {
                                     onPlaylistClick(playlist.id, playlist.name)
                                 }
-                                .padding(vertical = 8.dp)
-                        )
+                                .padding(vertical = 8.dp))
                     }
                 }
             }
@@ -819,21 +837,17 @@ fun NewPlaylistDialog(
                 Row(
                     modifier = Modifier.align(Alignment.End)
                 ) {
-                    Text(
-                        text = "Cancel",
+                    Text(text = "Cancel",
                         color = Color.White,
                         modifier = Modifier
                             .clickable { onDismissRequest() }
-                            .padding(8.dp)
-                    )
+                            .padding(8.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Create",
+                    Text(text = "Create",
                         color = Color.White,
                         modifier = Modifier
                             .clickable { onCreatePlaylist() }
-                            .padding(8.dp)
-                    )
+                            .padding(8.dp))
                 }
             }
         }

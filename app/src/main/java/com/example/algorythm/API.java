@@ -328,6 +328,41 @@ public class API {
         }
     }
 
+    public static String extractPlaylistCode(String jsonString) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(jsonString);
+        return rootNode.get("shareCode").asText();
+    }
+
+    public static String sharePlaylist(String playlistID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/SharePlaylist?playlistId="+playlistID;
+        System.out.println("Effekt7: " + apiUrl);
+        try{
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            return extractPlaylistCode(res);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            e.getStackTrace();
+            return null;
+        }
+    }
+
+    public static String addSharedPlaylistFromCode(String code,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/GetSharedPlaylist?shareCode="+code;
+        try{
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            return res;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            e.getStackTrace();
+            return null;
+        }
+    }
+
 
 
 }

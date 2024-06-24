@@ -18,7 +18,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun SongItem(
@@ -53,22 +55,32 @@ fun SongItem(
             Image(
                 bitmap = bitmap.asImageBitmap(),
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .size(70.dp)
-                    .clip(RectangleShape)
-                    .background(Color.White)
-                    .fillMaxSize()
-                    .clip(RoundedCornerShape(2.dp))
+                    .shadow(
+                        elevation = 15.dp,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black)
 
             )
         } else {
             Image(
                 painter = painterResource(id = R.drawable.logo_placeholder),
                 contentDescription = null,
+                contentScale = ContentScale.FillBounds,
                 modifier = Modifier
                     .size(70.dp)
-                    .clip(RectangleShape)
-                    .background(Color.White)
+                    .shadow(
+                        elevation = 15.dp,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .fillMaxHeight()
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(Color.Black)
             )
         }
         Spacer(modifier = Modifier.width(16.dp))
