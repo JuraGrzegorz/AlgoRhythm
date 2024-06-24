@@ -75,6 +75,8 @@ dependencies {
     implementation(libs.googleid)
     implementation(libs.credentials)
     implementation(libs.credentials.play.services.auth)
+    implementation(libs.androidx.media.widget)
+    implementation(libs.androidx.media3.session)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

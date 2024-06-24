@@ -3,6 +3,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -60,7 +61,6 @@ fun saveSong(context: Context, song: Song) {
             break
         }
     }
-
     if (songsArray.length() >= recentSearchAmount) {
         songsArray.remove(0)
     }
@@ -70,6 +70,8 @@ fun saveSong(context: Context, song: Song) {
         put("title", song.title)
         put("author", song.author)
         put("thumbnailData", Base64.encodeToString(song.thumbnail?.toByteArray(), Base64.DEFAULT))
+        put("views", song.views)
+        put("likes", song.likes)
     }
 
     songsArray.put(songJson)
@@ -78,23 +80,27 @@ fun saveSong(context: Context, song: Song) {
 }
 
 fun getSavedSongs(context: Context): List<Song> {
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val songsJson = prefs.getString(PREFS_KEY, "[]")
-    val songsArray = JSONArray(songsJson)
-    val songList = mutableListOf<Song>()
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val songsJson = prefs.getString(PREFS_KEY, "[]")
+        val songsArray = JSONArray(songsJson)
+        Log.e("getSavedSongs", songsArray.toString())
+        val songList = mutableListOf<Song>()
 
-    for (i in 0 until songsArray.length()) {
-        val obj = songsArray.getJSONObject(i)
-        val id = obj.getString("id")
-        val title = obj.getString("title")
-        val author = obj.getString("author")
-        val thumbnailData = obj.getString("thumbnailData")
-        val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
-        val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-        songList.add(Song(id, title, author, bitmap))
-    }
+        for (i in 0 until songsArray.length()) {
+            val obj = songsArray.getJSONObject(i)
+            val id = obj.getString("id")
+            val title = obj.getString("title")
+            val author = obj.getString("author")
+            val thumbnailData = obj.getString("thumbnailData")
+            val views = obj.getString("views")
+            val likes = obj.getString("likes")
+            val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+            songList.add(Song(id, title, author, bitmap, views, likes, "null"))
+        }
 
-    return songList.asReversed()
+        println("Effekt" + songList.size)
+        return songList.asReversed()
 }
 
 fun Bitmap.toByteArray(): ByteArray {
@@ -116,6 +122,7 @@ fun Search(navController: NavController) {
     var selectedSong by remember { mutableStateOf<Song?>(null) }
     var recentSongs by remember { mutableStateOf(listOf<Song>()) }
     var currentGenre by remember { mutableStateOf<String?>(null) }
+    var isLoading by remember { mutableStateOf(false) } // State for loading
     val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -137,14 +144,14 @@ fun Search(navController: NavController) {
     }
 
     LaunchedEffect(searchText) {
+        isLoading = true // Set loading to true when search text changes
         coroutineScope.launch(Dispatchers.IO) {
-            try {
-                if (searchText.isNotEmpty()) {
+            if (searchText.isNotEmpty()) {
+                try {
                     var jwt = ""
                     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
                     jwt = sharedPref.getString("JWT","") ?:""
-                    val data: String = getMusicByTitle(searchText, songAmount,jwt, currentGenre)
-                    println(currentGenre)
+                    val data: String = getMusicByTitle(searchText, songAmount, jwt, currentGenre)
                     val arr = JSONArray(data)
                     val songList = mutableListOf<Song>()
                     for (i in 0 until arr.length()) {
@@ -153,16 +160,22 @@ fun Search(navController: NavController) {
                         val title = obj.getString("title")
                         val author = obj.getString("artistName")
                         val thumbnailData = obj.getString("thumbnailData")
+                        val views = obj.getString("views")
+                        val likes = obj.getString("likes")
                         val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
                         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-                        songList.add(Song(id, title, author, bitmap))
+                        songList.add(Song(id, title, author, bitmap, views, likes, "null"))
                     }
                     songs = songList
-                } else {
-                    songs = emptyList()
-                    recentSongs = getSavedSongs(context)
+                } catch (e: Exception) {
+                    println("EFFEKT SEARCH" + e)
+                } finally {
+                    isLoading = false // Set loading to false after search results are fetched
                 }
-            } catch (_: Exception) {
+            } else {
+                songs = emptyList()
+                recentSongs = getSavedSongs(context)
+                isLoading = false // Set loading to false after recent songs are fetched
             }
         }
     }
@@ -182,10 +195,12 @@ fun Search(navController: NavController) {
                         val id = obj.getString("id")
                         val title = obj.getString("title")
                         val author = obj.getString("artistName")
+                        val views = obj.getString("views")
+                        val likes = obj.getString("likes")
                         val thumbnailData = obj.getString("thumbnailData")
                         val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
                         val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-                        songList.add(Song(id, title, author, bitmap))
+                        songList.add(Song(id, title, author, bitmap, views,likes, "null" ))
                     }
                     songs = songList
                 }
@@ -207,7 +222,10 @@ fun Search(navController: NavController) {
         ) {
             OutlinedTextField(
                 value = searchText,
-                onValueChange = { searchText = it },
+                onValueChange = {
+                    searchText = it
+                    isLoading = true // Trigger loading state immediately after text change
+                },
                 placeholder = {
                     Text(text = "What do you want to listen to?", color = Color.Gray)
                 },
@@ -229,12 +247,9 @@ fun Search(navController: NavController) {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-
-
             Spacer(modifier = Modifier.height(16.dp))
 
             if (searchText.isEmpty()) {
-
                 currentGenre = null
 
                 Text(
@@ -265,16 +280,21 @@ fun Search(navController: NavController) {
                         SongItem(bitmap = song.thumbnail,
                             title = song.title,
                             author = song.author,
+                            views = song.views,
+                            likes = song.likes,
+                            playlistId = "null",
                             onClick = {
                                 keyboardController?.hide()
                                 saveSong(context, song)
                                 selectedSong = song
+                            },
+                            onLongClick = {
+
                             })
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-            } else{
-
+            } else {
                 LazyRow(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -291,7 +311,15 @@ fun Search(navController: NavController) {
                     }
                 }
 
-                if (songs.isNotEmpty()) {
+                if (isLoading) {
+                    // Display a loading indicator or empty state while loading
+                    Text(
+                        text = "Loading...",
+                        fontSize = 22.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(16.dp)
+                    )
+                } else if (songs.isNotEmpty()) {
                     Text(
                         text = "Search Results",
                         fontSize = 22.sp,
@@ -319,20 +347,23 @@ fun Search(navController: NavController) {
                             SongItem(bitmap = song.thumbnail,
                                 title = song.title,
                                 author = song.author,
+                                views = song.views,
+                                likes = song.likes,
+                                playlistId = "null",
+
                                 onClick = {
                                     keyboardController?.hide()
                                     saveSong(context, song)
                                     selectedSong = song
+                                },
+                                onLongClick = {
+
                                 })
                             Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
-
-
             }
-
-
         }
     }
 
@@ -341,7 +372,8 @@ fun Search(navController: NavController) {
         author = it.author
         musicID = it.id
         bitmap = it.thumbnail
-//        Music(title = it.title, author = it.author, musicID = it.id, bitmap = it.thumbnail)
+        views = it.views
+        likes = it.likes
         navController.navigate(Screens.Music.screen)
         selectedSong = null
     }

@@ -121,16 +121,17 @@ public class API {
         JsonNode rootNode = objectMapper.readTree(jsonString);
         return rootNode.get("userName").asText();
     }
-    public static String getMusic(int id, String password,String jwt) throws IOException {
-        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusic";
+    public static String getMusic(String id,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusic?MusicId=" + id;
+
+        System.out.println(apiUrl);
         try{
-            String requestBody = "{\"musicId\":\"" + id + "\",\"socketId\":\"" + password + "\"}";
-            return sendPostJWT(apiUrl,requestBody,jwt);
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            return res;
         }
         catch (Exception e){
-            e.getStackTrace();
-            System.out.println(e);
-            return null;
+            return "FAILED TO FETCH DATA" + e;
         }
     }
     public static String getProposedMusic(int count,String jwt){
@@ -170,11 +171,11 @@ public class API {
             return res;
         }
         catch (Exception e){
-            return "FAILED TO FETCH DATA";
+            return "FAILED TO FETCH DATA" + e;
         }
     }
 
-    public static String createPlaylist(String playlistName,int id,String jwt) throws IOException {
+    public static String createPlaylist(String playlistName,String id,String jwt) throws IOException {
         String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/CreatePlayList?playlistName="+playlistName+"&musicId="+id;
         try{
             String requestBody = "{\"playlistName\":\"" + playlistName + "\",\"musicId\":" + id + "}";
@@ -186,15 +187,16 @@ public class API {
             return null;
         }
     }
-    public static String addToPlaylist(int playlistID,int songID,String jwt) throws IOException {
+    public static String addToPlaylist(int playlistID,String songID,String jwt) throws IOException {
         String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/AddSongToPlaylist?playlistId="+playlistID+"&musicId="+songID;
+        System.out.println(apiUrl);
         try{
             String requestBody = "{\"playlistId\":\"" + playlistID + "\",\"musicId\":\"" + songID + "\"}";
             return sendPostJWT(apiUrl,requestBody,jwt);
         }
         catch (Exception e){
             e.getStackTrace();
-            System.out.println(e);
+            System.out.println(e + "NIE DZIALA");
             return null;
         }
     }
@@ -203,6 +205,7 @@ public class API {
         System.out.println(apiUrl);
         try{
             String requestBody = "{}";
+            System.out.println(jwt);
             return sendPostJWT(apiUrl,requestBody,jwt);
         }
         catch (Exception e){
@@ -292,4 +295,88 @@ public class API {
         }
     }
 
+    public static Boolean isLiked(String ID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Music/IsLiked?musicId="+ID;
+        try{
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            if(res.equals("true")){
+                return true;
+            } else {
+                return false;
+            }
+        }
+        catch (Exception e){
+            e.getStackTrace();
+            System.out.println(e);
+            return null;
+        }
+    }
+
+
+    public static boolean deleteFromPlaylist(String playlistID, String musicID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/DelSongFromPlaylist?playlistId="+playlistID+"&musicId="+musicID;
+        try{
+            String requestBody = "{}";
+            String res = sendPostJWT(apiUrl,requestBody,jwt);
+            if (res.equals("User registered successfully."))
+                return true;
+            else
+                return false;
+        }
+        catch (Exception e){
+            return false;
+        }
+    }
+
+    public static boolean deletePlaylist(String playlistID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/DelPlaylist?playlistId="+playlistID;
+        try{
+            String requestBody = "{}";
+            String res = sendPostJWT(apiUrl,requestBody,jwt);
+            if (res.equals("User registered successfully."))
+                return true;
+            else
+                return false;
+        }
+        catch (Exception e){
+            System.out.println("Can't delete " + e);
+            return false;
+        }
+    }
+
+    public static String extractPlaylistCode(String jsonString) throws IOException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode rootNode = objectMapper.readTree(jsonString);
+        return rootNode.get("shareCode").asText();
+    }
+
+    public static String sharePlaylist(String playlistID,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/SharePlaylist?playlistId="+playlistID;
+        System.out.println("Effekt7: " + apiUrl);
+        try{
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            return extractPlaylistCode(res);
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            e.getStackTrace();
+            return null;
+        }
+    }
+
+    public static String addSharedPlaylistFromCode(String code,String jwt) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/PlayList/GetSharedPlaylist?shareCode="+code;
+        try{
+            String requestBody = "{}";
+            String res = sendGetJWT(apiUrl,requestBody,jwt);
+            return res;
+        }
+        catch (Exception e){
+            e.printStackTrace();
+            e.getStackTrace();
+            return null;
+        }
+    }
 }

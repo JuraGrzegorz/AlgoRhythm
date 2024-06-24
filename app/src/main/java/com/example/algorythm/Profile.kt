@@ -23,9 +23,14 @@ import com.example.algorythm.ui.theme.MainTheme
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -50,6 +55,10 @@ fun Profile(navController: NavHostController) {
     val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
     val username = sharedPref.getString("username", "") ?: ""
     val coroutineScope = rememberCoroutineScope()
+    var showDialog by remember { mutableStateOf(false) }
+    var inputCode by remember { mutableStateOf("") }
+
+
 
     var playlists by remember { mutableStateOf(listOf<PlaylistData>()) }
     var playlistThumbnails by remember { mutableStateOf(mapOf<Int, Bitmap?>()) }
@@ -116,13 +125,21 @@ fun Profile(navController: NavHostController) {
                 )
 
                 IconButton(
-                    onClick = { /* Handle button click */ },
+                    onClick = {
+                        val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                        with(sharedPref.edit()) {
+                            putString("JWT", "")
+                            putString("username", "")
+                            apply()
+                        }
+                        restartApp(activity)
+                    },
                     modifier = Modifier
                         .padding(16.dp)
                         .align(Alignment.TopEnd)
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.ui_settings),
+                        painter = painterResource(id = R.drawable.baseline_logout_24),
                         contentDescription = "More options",
                         tint = Color.White,
                         modifier = Modifier.size(50.dp)
@@ -141,8 +158,17 @@ fun Profile(navController: NavHostController) {
                     .size(210.dp)
                     .clip(CircleShape)
                     .background(Color.White)
+                    .padding(horizontal = 32.dp)
                     .align(Alignment.CenterHorizontally)
-            )
+            ){
+                Icon(
+                    painter = painterResource(id = R.drawable.baseline_user_24), // Zmodyfikuj R.drawable.ic_user_avatar na ID Twojego zasobu ikony użytkownika
+                    contentDescription = "User Avatar",
+                    tint = BackgroundDarkGray,
+                    modifier = Modifier
+                        .fillMaxSize()
+                )
+            }
 
             Box(
                 modifier = Modifier
@@ -151,12 +177,15 @@ fun Profile(navController: NavHostController) {
             ) {
                 PlaylistItem(
                     bitmap = null,
+                    id = "null",
                     placeholderResId = R.drawable.fav_playlist_thumnail,
                     title = "Favourite tracks",
+
                     onClick = {
                         navController.navigate("playlist/Favourite tracks/${0}")
                     },
-                    onButtonClick = { /* Handle button click */ }
+                    onButtonClick = { /* Handle button click */ },
+                    showDeleteOption = false
                 )
             }
 
@@ -168,6 +197,27 @@ fun Profile(navController: NavHostController) {
                 color = Color.White
             )
 
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 2.dp, bottom = 4.dp),
+            ) {
+                IconButton(
+                    onClick = { showDialog = true },
+                    modifier = Modifier
+                        .size(60.dp)
+                        .align(Alignment.TopEnd)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.baseline_add_24),
+                        contentDescription = "Add playlist",
+                        tint = Color.White,
+                        modifier = Modifier
+                                .fillMaxSize()
+                    )
+                }
+            }
+
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -178,18 +228,56 @@ fun Profile(navController: NavHostController) {
                     val thumbnail = playlistThumbnails[playlist.id]
                     PlaylistItem(
                         bitmap = thumbnail,
+                        id = playlist.id.toString(),
                         placeholderResId = R.drawable.logo_placeholder,
                         title = playlist.name,
                         onClick = {
                             navController.navigate("playlist/${playlist.name}/${playlist.id}")
                         },
-                        onButtonClick = { /* Handle button click */ }
+                        onButtonClick = {},
+                        showDeleteOption = true
                     )
                     Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
     }
+
+    if (showDialog) {
+        AlertDialog(
+            onDismissRequest = { showDialog = false },
+            title = { Text("Enter Share Code") },
+            text = {
+                OutlinedTextField(
+                    value = inputCode,
+                    onValueChange = { inputCode = it },
+                    label = { Text("Code") }
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (inputCode.isNotEmpty()) {
+                            val jwt = sharedPref.getString("JWT", "") ?: ""
+                            coroutineScope.launch(Dispatchers.IO) {
+
+                                println("EFFEKT9 " + API.addSharedPlaylistFromCode(inputCode, jwt))
+                            }
+                            showDialog = false
+                        }
+                    }
+                ) {
+                    Text("Submit")
+                }
+            },
+            dismissButton = {
+                Button(onClick = { showDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
 }
 
 data class PlaylistData(val id: Int, val name: String, val countOfMusic: Int)
