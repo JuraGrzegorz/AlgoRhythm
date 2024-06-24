@@ -17,5 +17,7 @@ namespace TheWebApiServer.Models
         public int GenreId {  get; set; }
         [ForeignKey("GenreId")]
         public Genre Genre { get; set; }
+        public int Views {get; set; }
+
     }
 }

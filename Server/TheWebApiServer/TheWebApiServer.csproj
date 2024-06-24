@@ -10,6 +10,7 @@
   <ItemGroup>
     <PackageReference Include="Accord.MachineLearning" Version="3.8.0" />
     <PackageReference Include="Accord.Statistics" Version="3.8.0" />
+    <PackageReference Include="Google.Apis.Auth" Version="1.68.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="8.0.2" />

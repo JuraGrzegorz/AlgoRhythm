@@ -17,18 +17,31 @@ namespace TheWebApiServer.Controllers
     [Route("[Controller]")]
     public class MusicController : ControllerBase
     {
-        private readonly IHubContext<MusicStreamingHub, IMusicStreamingHub> _hubContext;
+        
         private readonly DataContext _context;
-        public MusicController(IHubContext<MusicStreamingHub, IMusicStreamingHub> hubContext,DataContext context)
+        private static RecommendationModel _recommendationModel;
+        public MusicController(DataContext context, RecommendationModel recommendationModel)
         {
-            _hubContext = hubContext;
             _context = context;
+            _recommendationModel=recommendationModel;
         }
 
         [HttpGet("GetMusic")]
-        /*[Authorize]*/
-        public async Task<IActionResult> GetMusic([FromQuery]GetMusicRequest model)
+        [Authorize]
+        public async Task<IActionResult> GetMusic([FromQuery] GetMusicRequest model)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return NotFound("niema takiego uzytwkonika");
+            }
+            
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return NotFound("Nie ma takiego użytkownika.");
+            }
+
             var song = await _context.Songs
              .Where(x => x.Id == model.MusicId)
              .Select(x => new
@@ -36,134 +49,44 @@ namespace TheWebApiServer.Controllers
                  x.Id,
                  x.Title,
                  x.MusicLength,
-                 x.ThumbnailData
+                 x.ArtistId,
+                 ArtistName = x.Artist.Name,
+                 x.ThumbnailData,
+                 x.Views,
+                 Likes = _context.Favourites.Count(y => y.SongId == x.Id)
              })
              .FirstOrDefaultAsync();
-            if(song == null)
+            if (song == null)
             {
-                return BadRequest("invalid MusicId");
+                return NotFound("invalid MusicId");
             }
-
-             return Ok(song);
+            return Ok(song);
         }
 
-        [HttpPost("GetMusicDataStream")]
-        /*[Authorize]*/
-        public async Task<IActionResult> GetMusicStream([FromBody] GetMusicStreamRequest model)
-        {
-            if (!ModelState.IsValid || model.SizeOfDataFrame==0)
-            {
-                if (model.SizeOfDataFrame == 0)
-                    return BadRequest("SizeOfDataFrame can't be 0");
-                return BadRequest(ModelState);
-            }
-
-            byte[] data = _context.Songs
-                .Where(x => x.Id == model.MusicId)
-                .Select(x => x.MusicData)
-                .FirstOrDefault();
-
-            if (data==null)
-            {
-                return BadRequest("inncorect Music Id");
-            }
-            if (model.MusicOffSet > data.Length)
-                return BadRequest("MusicOffSet to Height");
-            if (model.MusicOffSet + model.SizeOfMusicData > data.Length)
-                model.SizeOfMusicData= data.Length-model.MusicOffSet;
-
-            if (model.SizeOfMusicData < model.SizeOfDataFrame)
-                model.SizeOfDataFrame = model.SizeOfMusicData;
-            
-            var buffer = new byte[model.SizeOfDataFrame];
-            int len = 0;
-            int index = model.MusicOffSet;
-            while (len < model.SizeOfMusicData)
-            {
-                if(model.SizeOfMusicData<len+model.SizeOfDataFrame)
-                    model.SizeOfDataFrame=model.SizeOfMusicData-len;
-
-                Array.Copy(data,index,buffer,0,model.SizeOfDataFrame);
-                index+=model.SizeOfDataFrame;
-                len+= model.SizeOfDataFrame;
-                /*await _hubContext.Clients.All.GetMusicBytes(buffer);*/
-                await _hubContext.Clients.Client(model.SocketId).GetMusicBytes(buffer);
-            }
-
-            /*await _hubContext.Clients.Client(model.SocketId).GetMusicBytes(buffer);*/
-            return Ok();
-        }
 
         [HttpGet("GetProposedMusic")]
+        [Authorize]
         public async Task<IActionResult> GetProposedMusic(int CountOfProposedMusic)
         {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return NotFound("nie ma takiego uzytkownika");
+            }
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return NotFound("Nie ma takiego użytkownika.");
+            }
+
             if (CountOfProposedMusic < 1)
             {
                 return BadRequest("incorrect value of CountOfProposedMusic");
             }
+            var songsId = _recommendationModel.GetRecommendationsForUser(_context, userId, CountOfProposedMusic);
+
             var songs = await _context.Songs
-            .Select(x=> new
-            {
-                x.Id,
-                x.Title,
-                x.MusicLength,
-                x.ArtistId,
-                ArtistName=x.Artist.Name,
-                x.ThumbnailData
-            })
-            .OrderBy(x => Guid.NewGuid())
-            .Take(CountOfProposedMusic)
-            .ToListAsync();
-            return Ok(songs);
-        }
-
-
-        [HttpPost("LikeMusic")]
-        [Authorize]
-        public async Task<IActionResult> LikeMusic([FromQuery] int musicId)
-        {
-           
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
- 
-            var song = await _context.Songs.FindAsync(musicId);
-            if (song == null)
-            {
-                return BadRequest("Taka muzyka nie istnieje");
-            }
-
-            _context.Favourites.Add(new Favourites
-            {
-                SongId = musicId,
-                UserId = userId
-            });
-
-            await _context.SaveChangesAsync();
-            return Ok();
-        }
-
-
-        /*[HttpGet("GetCoutOfConnetedUsers")]
-        public async Task<IActionResult> GetCoutOfConnetedUsers()
-        {
-            return Ok(MusicStreamingHub.GetAllClients());
-        }*/
-
-        /*[HttpGet("testGetMusic")]
-        [Authorize]
-        public async Task<IActionResult> testGetMusic()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-           *//* var res=_recommendationModel.GetRecommendationsForUser(userId,2);*//*
-            return Ok();
-        }*/
-
-        [HttpGet("GetMusicByTitle")]
-        public async Task<IActionResult> GetMusicByTitle([FromQuery] string titleSubString, int countOfReturnedMusic)
-        {
-            
-
-            var containingTitle = await _context.Songs
-                .Where(x => x.Title.ToLower().Contains(titleSubString.ToLower()))
+                .Where(x => songsId.Contains(x.Id))
                 .Select(x => new
                 {
                     x.Id,
@@ -171,13 +94,252 @@ namespace TheWebApiServer.Controllers
                     x.MusicLength,
                     x.ArtistId,
                     ArtistName = x.Artist.Name,
-                    x.ThumbnailData
+                    x.ThumbnailData,
+                    x.Views,
+                    Likes = _context.Favourites.Count(y => y.SongId == x.Id)
+                })
+                .Take(CountOfProposedMusic)
+                .ToListAsync();
+
+            return Ok(songs.ToList());
+        }
+
+
+        [HttpPost("LikeMusic")]
+        [Authorize]
+        public async Task<IActionResult> LikeMusic([FromQuery] int musicId)
+        {
+            
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return NotFound("niema takiego uzytwkonika");
+            }
+           
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return NotFound("Nie ma takiego użytkownika.");
+            }
+            
+            var song = await _context.Songs.FindAsync(musicId);
+            if (song == null)
+            {
+                return BadRequest("Taka muzyka nie istnieje");
+            }
+
+            var contains=await _context.Favourites
+                .Where(x => x.UserId == userId && x.SongId == musicId)
+                .FirstOrDefaultAsync();
+
+            if (contains != null)
+                return BadRequest("ta muzyka juz istnieje");
+
+
+            _context.Favourites.Add(new Favourites
+            {
+                SongId = musicId,
+                UserId = userId,
+                AddTime=DateTime.Now
+            });
+
+            await _context.SaveChangesAsync();
+            return Ok("added to serwer");
+        }
+
+        [HttpPost("UnLikeMusic")]
+        [Authorize]
+        public async Task<IActionResult> UnLikeMusic([FromQuery] int musicId)
+        {
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return NotFound("nie ma takiego uzytkownika");
+            }
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return NotFound("Nie ma takiego użytkownika.");
+            }
+
+            var song = await _context.Songs.FindAsync(musicId);
+            if (song == null)
+            {
+                return BadRequest("Taka muzyka nie istnieje");
+            }
+
+            var curFavourite = await _context.Favourites
+                .SingleOrDefaultAsync(x => x.SongId == musicId && x.UserId == userId);
+
+            if (curFavourite == null)
+            {
+                return NotFound("Ten użytkownik nie lajkuje tej muzyki");
+            }
+
+            _context.Favourites.Remove(curFavourite);
+            await _context.SaveChangesAsync();
+
+            return Ok();
+        }
+
+
+        [HttpGet("GetMusicByTitle")]
+        [Authorize]
+        public async Task<IActionResult> GetMusicByTitle([FromQuery] string titleSubString, int countOfReturnedMusic,string categoryName = null)
+        {
+
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return NotFound("nie ma takiego uzytkownika");
+            }
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return NotFound("Nie ma takiego użytkownika.");
+            }
+
+            var containingTitle = await _context.Songs
+                 .Where(x =>
+                     x.Title.ToLower().StartsWith(titleSubString.ToLower()) &&
+                     (categoryName == null || x.Genre.Name == categoryName)
+                 )
+                 .Select(x => new
+                 {
+                     x.Id,
+                     x.Title,
+                     x.MusicLength,
+                     x.ArtistId,
+                     ArtistName = x.Artist.Name,
+                     x.ThumbnailData,
+                     x.Views,
+                     Likes = _context.Favourites.Count(y => y.SongId == x.Id)
+
+                 })
+                 .Take(countOfReturnedMusic)
+                 .ToListAsync();
+
+            var containingTitle2 = await _context.Songs
+                .Where(x => x.Title.ToLower().Contains(titleSubString.ToLower()) && !x.Title.ToLower().StartsWith(titleSubString.ToLower()) && (categoryName==null || x.Genre.Name==categoryName))
+                .Select(x => new
+                {
+                    x.Id,
+                    x.Title,
+                    x.MusicLength,
+                    x.ArtistId,
+                    ArtistName = x.Artist.Name,
+                    x.ThumbnailData,
+                    x.Views,
+                    Likes = _context.Favourites.Count(y => y.SongId == x.Id)
                 })
                 .Take(countOfReturnedMusic)
                 .ToListAsync();
-            return Ok(containingTitle);
+
+            var results = containingTitle.Union(containingTitle2).ToList();
+
+            return Ok(results);
         }
 
+
+        [HttpGet("GetAllGenres")]
+        public async Task<IActionResult> GetAllGenres()
+        {
+            var genres=await _context.Genres
+                .Select(x=>x.Name)
+                .ToListAsync();
+
+
+            return Ok(genres);
+        }
+
+        [HttpGet("GetLikedUserMusic")]
+        [Authorize]
+        public async Task<IActionResult> GetLikedUserMusic(int countOfReturnedMusic)
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+                return NotFound("nie ma takiego uzytkownika");
+
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return NotFound("Nie ma takiego użytkownika.");
+            }
+            
+            var curUserFavourites = await _context.Favourites
+                .Where(x => x.UserId == userId)
+                .Select(x => new
+                {
+                    x.Song.Id,
+                    x.Song.Title,
+                    x.Song.MusicLength,
+                    ArtistName = x.Song.Artist.Name,
+                    x.Song.ThumbnailData,
+                    x.Song.Views,
+                    Likes = _context.Favourites.Count(y => y.SongId == x.SongId)
+                })
+                .Take(countOfReturnedMusic)
+                .ToListAsync();
+                
+            return Ok(curUserFavourites);
+        }
+
+        [HttpGet("IsLiked")]
+        [Authorize]
+        public async Task<IActionResult> IsLiked([FromQuery] int musicId)
+        {
+            
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null)
+            {
+                return NotFound("Nie ma takiego użytkownika");
+            }
+
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+            if (!userExists)
+            {
+                return NotFound("Nie ma takiego użytkownika.");
+            }
+
+            bool musicExists = await _context.Songs.AnyAsync(x => x.Id == musicId);
+            if (!musicExists)
+            {
+                return NotFound("nie ma takiej muzyki");
+            }
+
+            var isFavourite = await _context.Favourites
+                .AnyAsync(x => x.UserId == userId && x.SongId == musicId);
+
+            return Ok(isFavourite);
+        }
+
+
+        [HttpGet("GetMusicData")]
+       /* [Authorize]*/
+        public async Task<IActionResult> GetMusicData(int songId)
+        {
+            var song = await _context.Songs
+            .Where(x => x.Id == songId)
+            .Select(x => new { x.MusicData, x.Views })
+            .FirstOrDefaultAsync();
+
+            if (song != null)
+            {
+                var songToUpdate = await _context.Songs.FindAsync(songId);
+                if (songToUpdate != null)
+                {
+                    songToUpdate.Views++;
+                    await _context.SaveChangesAsync();
+                }
+
+
+                var stream = new MemoryStream(song.MusicData);
+                return new FileStreamResult(stream, "audio/mpeg");
+            }
+
+            return NotFound();
+        }
 
     }
 }

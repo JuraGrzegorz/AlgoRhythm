@@ -9,12 +9,12 @@ namespace TheWebApiServer.Services
     {
         public async Task SendEmailAsync(string email, string subject, string htmlMessage)
         {
-            
             var client = new SmtpClient("smtp.gmail.com", 587)
             {
                 EnableSsl = true,
-                Credentials = new NetworkCredential("juratestmail@gmail.com", "rixr brdn zqiq oaxq")
+                Credentials = new NetworkCredential("juratestmail@gmail.com", "boyb iisg jfdm umek")
             };
+
             MailMessage message = new MailMessage("juratestmail@gmail.com", email, subject, htmlMessage);
             message.IsBodyHtml = true;
 

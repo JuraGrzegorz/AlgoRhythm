@@ -55,9 +55,6 @@ builder.Services.AddTransient<IEmailSender, EmailSender>();
 
 builder.Services.AddSingleton<RecommendationModel>();
 
-/*builder.Services.AddTransient<RecommendationModel>();
-builder.Services.AddScoped<RecommendationModel>();
-builder.Services.AddHostedService<RecommendationModelHosted>();*/
 
 builder.Services.AddScoped<VerificationCodeService>();
 
@@ -66,8 +63,6 @@ builder.Services.AddMemoryCache();
 builder.Services.AddAuthorization();
 builder.Services.AddIdentityApiEndpoints<IdentityUser>().AddEntityFrameworkStores<DataContext>();
 
-
-//dodane testowo
 builder.Services.AddHostedService<RecommendationModelInitializer>();
 
 builder.Services.AddSwaggerGen(options =>
@@ -82,7 +77,6 @@ builder.Services.AddSwaggerGen(options =>
     options.OperationFilter<SecurityRequirementsOperationFilter>();
 });
 
-builder.Services.AddSignalR();
 var app = builder.Build();
 
 
@@ -103,7 +97,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-app.MapHub<MusicStreamingHub>("/music-hub");
 
 
 

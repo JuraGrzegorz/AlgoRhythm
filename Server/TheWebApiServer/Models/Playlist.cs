@@ -11,5 +11,6 @@ namespace TheWebApiServer.Models
         [ForeignKey("UserId")]
         public IdentityUser User { get; set; }
         public List<PlaylistSongs> PlaylistSongs { get; set; }
+        public string? ShareCode { get; set; }
     }
 }

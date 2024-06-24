@@ -18,6 +18,10 @@ using TheWebApiServer.Data;
 using TheWebApiServer.Services;
 using static System.Net.Mime.MediaTypeNames;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using NuGet.Common;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using Microsoft.SqlServer.Server;
+using Google.Apis.Auth;
 
 
 namespace TheWebApiServer.Controllers
@@ -79,9 +83,6 @@ namespace TheWebApiServer.Controllers
                 return BadRequest(ModelState);
             }
 
-           /* await _emailSender.SendEmailAsync(user, "Confirm your email",
-                "Please confirm your email address by clicking this link.");
-*/
             return Ok("User registered successfully.");
         }
 
@@ -94,11 +95,82 @@ namespace TheWebApiServer.Controllers
             if (user != null && await _userManager.CheckPasswordAsync(user, login.Password))
             {
                 var token = GenerateJwtToken(user.Id);
-                return Ok(new { token });
+                return Ok(new {
+                    jwtToken=token,
+                    userName=user.UserName
+                });
             }
 
             return Unauthorized();
         }
+
+        [HttpPost("LoginByGoogle")]
+        public async Task<IActionResult> LoginByGoogle([FromBody] LoginByGoogleRequest googleAuthToken)
+        {
+            try
+            {
+                var payload = await GoogleJsonWebSignature.ValidateAsync(googleAuthToken.Token);
+
+                string userId = payload.Subject;
+                string email = payload.Email;
+                string name = payload.Name;
+
+                var user = await _userManager.FindByLoginAsync("Google", userId);
+
+                if (user == null)
+                {
+
+                    user = await _userManager.FindByEmailAsync(email);
+
+                    if (user == null)
+                    {
+                        user = new IdentityUser
+                        {
+                            UserName = email,
+                            Email = email,
+                        };
+
+                        var result = await _userManager.CreateAsync(user);
+                        if (!result.Succeeded)
+                        {
+                            return BadRequest(result.Errors);
+                        }
+                        await _userManager.AddToRoleAsync(user, "User");
+
+                        var info = new UserLoginInfo("Google", userId, "Google");
+                        await _userManager.AddLoginAsync(user, info);
+                        await _userManager.AddToRoleAsync(user, "User");
+                        await _context.SaveChangesAsync();
+                    }
+                    else
+                    {
+                        var info = new UserLoginInfo("Google", userId, "Google");
+                        var result = await _userManager.AddLoginAsync(user, info);
+
+                        if (!result.Succeeded)
+                        {
+                            return BadRequest(result.Errors);
+                        }
+                    }
+                }
+                
+
+                await _signInManager.SignInAsync(user, true);
+
+
+                return Ok(new
+                {
+                    jwtToken = GenerateJwtToken(user.Id),
+                    userName = user.UserName
+                });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new { Message = "Invalid Google token." });
+            }
+        }
+
+
 
         private string GenerateJwtToken(string UserId)
         {
@@ -110,7 +182,7 @@ namespace TheWebApiServer.Controllers
                 issuer: _configuration["JwtSettings:Issuer"],
                 audience: _configuration["JwtSettings:Audience"],
                 claims: new[] { new Claim(ClaimTypes.NameIdentifier, UserId) },
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.Now.AddDays(30),
                 signingCredentials: credentials); 
 
             return new JwtSecurityTokenHandler().WriteToken(token);
@@ -124,13 +196,16 @@ namespace TheWebApiServer.Controllers
             {
                 return BadRequest(ModelState);
             }
-            //to do
+            
             long code = _verificationCode.GenerateCode(model.Email);
+            if (code == -1)
+            {
+                return Ok("failed");
+            }
             await _emailSender.SendPasswordResetCodeAsync(model.Email, code.ToString());
-
-           
-            return Ok();
+            return Ok("success");
         }
+
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] Requests.ResetPasswordRequest model)
         {
@@ -138,32 +213,41 @@ namespace TheWebApiServer.Controllers
             {
                 return BadRequest(ModelState);
             }
-            //to do
-            bool verficationRes=_verificationCode.VerficateCode(model.Email, long.Parse(model.Code));
-            if (verficationRes)
+           
+            int verficationRes=_verificationCode.VerficateCode(model.Email, long.Parse(model.Code));
+            if (verficationRes==1)
             {
                 var user = await _userManager.FindByEmailAsync(model.Email);
                 string code=await _userManager.GeneratePasswordResetTokenAsync(user);
                 var result = await _userManager.ResetPasswordAsync(user, code, model.NewPassword);
                 if (result.Succeeded)
                 {
+                    _verificationCode.ClearUserCode(model.Email);
                     return Ok();
                 }
                 else
                 {
-                    BadRequest("error");
+                    var errors = result.Errors.Select(e => e.Description);
+                    return BadRequest(new { ErrorMessage = "Resetowanie hasła nie powiodło się.", Errors = errors });
                 }
             }
-            else
+            if (verficationRes == 0)
             {
-                return BadRequest("incorrect values");
+                return BadRequest(new { ErrorMessage = "Niepoprawny kod weryfikacyjny." });
             }
-            return BadRequest("incorrect values");
+
+            if (verficationRes == -1)
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new { ErrorMessage = "Konto zostało zablokowane z powodu zbyt wielu nieudanych prób." });
+            }
+
+            return Ok();
+           
         }
 
         [HttpPost]
         [Route("ChangePassword")]
-       /* [Authorize]*/
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest model)
         {
             if (!ModelState.IsValid)
@@ -172,12 +256,15 @@ namespace TheWebApiServer.Controllers
             }
 
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine(userId);
             if (userId == null)
             {
                 return NotFound("Nie można znaleźć użytkownika.");
             }
             var user=await _userManager.FindByIdAsync(userId);
+            if (user == null)
+            {
+                return NotFound("Nie można znaleźć użytkownika.");
+            }
             var result = await _userManager.ChangePasswordAsync(user, model.CurrentPassword, model.NewPassword);
 
             if (result.Succeeded)
@@ -193,7 +280,7 @@ namespace TheWebApiServer.Controllers
 
         [HttpPost]
         [Route("ChangeEmail")]
-        /*[Authorize]*/
+        [Authorize]
         public async Task<IActionResult> ChangeEmail([FromBody] ChangeEmailRequest model)
         {
             if (!ModelState.IsValid)
@@ -202,8 +289,6 @@ namespace TheWebApiServer.Controllers
 
             }
             var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            
-           
             var user = await _userManager.FindByIdAsync(userId);
 
             if (user == null)
@@ -225,9 +310,6 @@ namespace TheWebApiServer.Controllers
                 return BadRequest("Nie udało się zmienić adresu e-mail. Sprawdź poprawność nowego adresu e-mail.");
             }
         }
-
-
-
     }
 }
 

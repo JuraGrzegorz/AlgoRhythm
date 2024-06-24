@@ -12,6 +12,9 @@ C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Accord.Statistics.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Azure.Core.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Azure.Identity.dll
+C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Google.Apis.dll
+C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Google.Apis.Auth.dll
+C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Google.Apis.Core.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Humanizer.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Microsoft.AspNetCore.Authentication.Google.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\Microsoft.AspNetCore.Authentication.JwtBearer.dll
@@ -112,6 +115,7 @@ C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\System.Configuration.ConfigurationManager.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\System.Drawing.Common.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\System.IdentityModel.Tokens.Jwt.dll
+C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\System.Management.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\System.Memory.Data.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\System.Net.WebSockets.WebSocketProtocol.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\System.Numerics.Tensors.dll
@@ -283,6 +287,7 @@ C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\runtimes\win-x86\native\MatrixFactorizationNative.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\runtimes\win\lib\net7.0\Microsoft.Win32.SystemEvents.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\runtimes\win\lib\net7.0\System.Drawing.Common.dll
+C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\runtimes\win\lib\net7.0\System.Management.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\runtimes\win\lib\net6.0\System.Runtime.Caching.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\runtimes\win\lib\net7.0\System.Security.Cryptography.ProtectedData.dll
 C:\Users\Juras\Desktop\2024\AlgoRhythm\Server\TheWebApiServer\obj\Release\net8.0\PubTmp\Out\runtimes\win\lib\net7.0\System.Windows.Extensions.dll

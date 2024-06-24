@@ -1,54 +1,12 @@
 {
   "Version": 1,
   "WorkspaceRootPath": "C:\\Users\\Juras\\Desktop\\2024\\AlgoRhythm\\Server\\TheWebApiServer\\",
-  "Documents": [
-    {
-      "AbsoluteMoniker": "D:0:0:{7BD9A5D4-18CE-49F9-81F6-BEB77A59E3AD}|TheWebApiServer.csproj|c:\\users\\juras\\desktop\\2024\\algorhythm\\server\\thewebapiserver\\services\\recommendationmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7BD9A5D4-18CE-49F9-81F6-BEB77A59E3AD}|TheWebApiServer.csproj|solutionrelative:services\\recommendationmodel.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{7BD9A5D4-18CE-49F9-81F6-BEB77A59E3AD}|TheWebApiServer.csproj|c:\\users\\juras\\desktop\\2024\\algorhythm\\server\\thewebapiserver\\controllers\\testcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{7BD9A5D4-18CE-49F9-81F6-BEB77A59E3AD}|TheWebApiServer.csproj|solutionrelative:controllers\\testcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    }
-  ],
+  "Documents": [],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": [
-        {
-          "DockedWidth": 200,
-          "SelectedChildIndex": 0,
-          "Children": [
-            {
-              "$type": "Document",
-              "DocumentIndex": 0,
-              "Title": "RecommendationModel.cs",
-              "DocumentMoniker": "C:\\Users\\Juras\\Desktop\\2024\\AlgoRhythm\\Server\\TheWebApiServer\\Services\\RecommendationModel.cs",
-              "RelativeDocumentMoniker": "Services\\RecommendationModel.cs",
-              "ToolTip": "C:\\Users\\Juras\\Desktop\\2024\\AlgoRhythm\\Server\\TheWebApiServer\\Services\\RecommendationModel.cs",
-              "RelativeToolTip": "Services\\RecommendationModel.cs",
-              "ViewState": "AQIAACQAAAAAAAAAAAAYwDsAAAANAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-10T10:11:39.212Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 1,
-              "Title": "testController.cs",
-              "DocumentMoniker": "C:\\Users\\Juras\\Desktop\\2024\\AlgoRhythm\\Server\\TheWebApiServer\\Controllers\\testController.cs",
-              "RelativeDocumentMoniker": "Controllers\\testController.cs",
-              "ToolTip": "C:\\Users\\Juras\\Desktop\\2024\\AlgoRhythm\\Server\\TheWebApiServer\\Controllers\\testController.cs",
-              "RelativeToolTip": "Controllers\\testController.cs",
-              "ViewState": "AQIAAAsAAAAAAAAAAAAAwB0AAAAAAAAA",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2024-06-08T14:38:05.363Z",
-              "EditorCaption": ""
-            }
-          ]
-        }
-      ]
+      "DocumentGroups": []
     }
   ]
 }

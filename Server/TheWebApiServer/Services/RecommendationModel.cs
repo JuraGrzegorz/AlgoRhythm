@@ -11,6 +11,7 @@ using TheWebApiServer.Data;
 using TheWebApiServer.Models;
 using Microsoft.ML.Data;
 using Microsoft.ML.Transforms;
+using Microsoft.IdentityModel.Tokens;
 
 namespace TheWebApiServer.Services
 {
@@ -20,6 +21,7 @@ namespace TheWebApiServer.Services
         private MLContext _mlContext;
         private ITransformer _model;
         private IDataView _dataView;
+        private bool isInicialise=false;
         public RecommendationModel()
         {
             _mlContext = new MLContext();
@@ -43,6 +45,11 @@ namespace TheWebApiServer.Services
                 userId = (uint)_userMapping[x.UserId]
             }).ToList();
 
+            if (ratings.IsNullOrEmpty())
+            {
+                return;
+            }
+
             _dataView = _mlContext.Data.LoadFromEnumerable(ratings);
 
             var dataProcessingPipeline = _mlContext.Transforms.Conversion.MapValueToKey(nameof(MusicRating.userId))
@@ -54,47 +61,17 @@ namespace TheWebApiServer.Services
                 MatrixRowIndexColumnName = nameof(MusicRating.musicId),
                 LabelColumnName = nameof(MusicRating.Label),
                 NumberOfIterations = 50,
-                ApproximationRank = 50,  
+                ApproximationRank = 50,
                 LearningRate = 0.005,
-                Lambda = 0.1,    
+                Lambda = 0.1,
             };
 
             var trainingPipeline = dataProcessingPipeline.Append(_mlContext.Recommendation().Trainers.MatrixFactorization(options));
 
-            // Trenowanie modelu
+
             _model = trainingPipeline.Fit(_dataView);
+            isInicialise = true;
         }
-
-
-        /*public void UpdateModel(string userId, int likedMusicId, DataContext context)
-        {
-            int userIdMapped;
-            if (_userMapping.ContainsKey(userId))
-            {
-                userIdMapped = _userMapping[userId];
-            }
-            else
-            {
-                userIdMapped = _userMapping.Count;
-                _userMapping[userId] = userIdMapped;
-            }
-
-            var newData = new List<MusicRating>
-            {
-                new MusicRating
-                {
-                    userId = (uint)userIdMapped,
-                    musicId = (uint)likedMusicId,
-                    Label = 1f
-                }
-            };
-
-            IDataView newDataView = _mlContext.Data.LoadFromEnumerable(newData);
-
-            IDataView transformedNewData = dataPrepPipeline.Transform(newDataView);
-        }*/
-
-
 
         public List<int> GetRecommendationsForUser(DataContext _context, string userId, int numberOfRecommendations)
         {
@@ -103,39 +80,52 @@ namespace TheWebApiServer.Services
                 throw new ArgumentException("Invalid user ID");
             }
 
-            var predictionEngine = _mlContext.Model.CreatePredictionEngine<MusicRating, MusicRatingPrediction>(_model);
 
-            var scoredMusic = new List<Tuple<int, float>>();
-
-
-            var notRatedMusicIds = _context.Songs
-               .Where(song => !_context.Favourites.Any(f => f.UserId == userId && f.SongId == song.Id))
-               .Select(x => x.Id)
-               .ToList();
-
-            /*var notRatedMusicIds = _context.Favourites
-              .GroupBy(x => x.SongId)
-              .OrderByDescending(group => group.Count())
-              .Take(5)
-              .Select(group => group.Key)
-              .Where(songId => !_context.Favourites.Any(f => f.UserId == userId && f.SongId == songId))
-              .ToList();*/
-            notRatedMusicIds.Shuffle();
-            foreach (var musicId in notRatedMusicIds)
+            if (isInicialise)
             {
-                var prediction = predictionEngine.Predict(new MusicRating
+                var predictionEngine = _mlContext.Model.CreatePredictionEngine<MusicRating, MusicRatingPrediction>(_model);
+
+                var scoredMusic = new List<Tuple<int, float>>();
+
+                var notRatedMusicIds = _context.Songs
+                  .OrderByDescending(x => x.Views)
+                  .Take(100)
+                  .Select(x => x.Id)
+                  .Where(songId => !_context.Favourites.Any(f => f.UserId == userId && f.SongId == songId))
+                  .ToList();
+
+                foreach (var musicId in notRatedMusicIds)
                 {
-                    userId = (uint)userIndex,
-                    musicId = (uint)musicId
-                });
+                    var prediction = predictionEngine.Predict(new MusicRating
+                    {
+                        userId = (uint)userIndex,
+                        musicId = (uint)musicId
+                    });
 
-                scoredMusic.Add(Tuple.Create(musicId, prediction.Score));
+                    scoredMusic.Add(Tuple.Create(musicId, prediction.Score));
+                }
+                foreach (var a in scoredMusic)
+                {
+                    Console.WriteLine(a.Item1 + " " + a.Item2);
+                }
+                return scoredMusic
+                   .OrderByDescending(x => Math.Abs(x.Item2))
+                   .Take(numberOfRecommendations)
+                   .Select(x => x.Item1)
+                   .ToList();
             }
-            foreach (var a in scoredMusic)
+            else
             {
-                Console.WriteLine(a.Item1 + " " + a.Item2);
+                var scoredMusic = _context.Songs
+                    .Where(x => !_context.Favourites.Any(f => f.UserId == userId && f.SongId == x.Id))
+                    .OrderByDescending(x => x.Views)
+                    .Take(numberOfRecommendations)
+                    .Select(x => x.Id)
+                    .ToList();
+
+                return scoredMusic;
             }
-            return scoredMusic.OrderByDescending(x => x.Item2).Take(numberOfRecommendations).Select(x => x.Item1).ToList();
+            
         }
     }
     internal class MusicRating

@@ -107,6 +107,32 @@
   },
   {
     "ContainingType": "TheWebApiServer.Controllers.MusicController",
+    "Method": "GetAllGenres",
+    "RelativePath": "Music/GetAllGenres",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.MusicController",
+    "Method": "GetLikedUserMusic",
+    "RelativePath": "Music/GetLikedUserMusic",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "countOfReturnedMusic",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.MusicController",
     "Method": "GetMusic",
     "RelativePath": "Music/GetMusic",
     "HttpMethod": "GET",
@@ -138,22 +164,11 @@
         "Name": "countOfReturnedMusic",
         "Type": "System.Int32",
         "IsRequired": false
-      }
-    ],
-    "ReturnTypes": []
-  },
-  {
-    "ContainingType": "TheWebApiServer.Controllers.MusicController",
-    "Method": "GetMusicStream",
-    "RelativePath": "Music/GetMusicDataStream",
-    "HttpMethod": "POST",
-    "IsController": true,
-    "Order": 0,
-    "Parameters": [
+      },
       {
-        "Name": "model",
-        "Type": "TheWebApiServer.Requests.GetMusicStreamRequest",
-        "IsRequired": true
+        "Name": "categoryName",
+        "Type": "System.String",
+        "IsRequired": false
       }
     ],
     "ReturnTypes": []
@@ -184,6 +199,106 @@
     "Parameters": [
       {
         "Name": "musicId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.MusicController",
+    "Method": "UnLikeMusic",
+    "RelativePath": "Music/UnLikeMusic",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "musicId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.PlayListController",
+    "Method": "AddSongToPlaylist",
+    "RelativePath": "PlayList/AddSongToPlaylist",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "playlistId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      },
+      {
+        "Name": "musicId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.PlayListController",
+    "Method": "CreatePlaylist",
+    "RelativePath": "PlayList/CreatePlaylist",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "playlistName",
+        "Type": "System.String",
+        "IsRequired": false
+      },
+      {
+        "Name": "musicId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.PlayListController",
+    "Method": "GetPlaylistThumbnailData",
+    "RelativePath": "PlayList/GetPlaylistThumbnailData",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "playlistId",
+        "Type": "System.Int32",
+        "IsRequired": false
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.PlayListController",
+    "Method": "GetUserPlaylist",
+    "RelativePath": "PlayList/GetUserPlaylist",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "TheWebApiServer.Controllers.testController",
+    "Method": "GetMusicData",
+    "RelativePath": "test/GetMusicData",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "songId",
         "Type": "System.Int32",
         "IsRequired": false
       }

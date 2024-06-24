@@ -293,6 +293,9 @@ namespace TheWebApiServer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ShareCode")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
@@ -359,6 +362,9 @@ namespace TheWebApiServer.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Views")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("ArtistId");
@@ -366,76 +372,6 @@ namespace TheWebApiServer.Migrations
                     b.HasIndex("GenreId");
 
                     b.ToTable("Songs");
-                });
-
-            modelBuilder.Entity("TheWebApiServer.Models.SongsTags", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("SongId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TagId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SongId");
-
-                    b.HasIndex("TagId");
-
-                    b.ToTable("SongsTags");
-                });
-
-            modelBuilder.Entity("TheWebApiServer.Models.Tag", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tags");
-                });
-
-            modelBuilder.Entity("TheWebApiServer.Models.TimePerTag", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("SongId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("TimeOfTests")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("value")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SongId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("TimePerTags");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -555,44 +491,6 @@ namespace TheWebApiServer.Migrations
                     b.Navigation("Artist");
 
                     b.Navigation("Genre");
-                });
-
-            modelBuilder.Entity("TheWebApiServer.Models.SongsTags", b =>
-                {
-                    b.HasOne("TheWebApiServer.Models.Song", "Song")
-                        .WithMany()
-                        .HasForeignKey("SongId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("TheWebApiServer.Models.Tag", "Tag")
-                        .WithMany()
-                        .HasForeignKey("TagId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Song");
-
-                    b.Navigation("Tag");
-                });
-
-            modelBuilder.Entity("TheWebApiServer.Models.TimePerTag", b =>
-                {
-                    b.HasOne("TheWebApiServer.Models.Song", "Song")
-                        .WithMany()
-                        .HasForeignKey("SongId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Microsoft.AspNetCore.Identity.IdentityUser", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Song");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("TheWebApiServer.Models.Artist", b =>
