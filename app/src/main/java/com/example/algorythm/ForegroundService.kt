@@ -62,7 +62,6 @@ class ForegroundService : Service() {
 
         // Utworzenie kanału powiadomień
         createNotificationChannel()
-
         // Inicjalizacja budowniczego powiadomień
         notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.logo_placeholder)
@@ -98,8 +97,12 @@ class ForegroundService : Service() {
             coroutineScope.launch {
                 val sharedPref = getSharedPreferences("MainActivity", Context.MODE_PRIVATE)
                 val jwt = sharedPref.getString("JWT", "") ?: ""
-
-                var data = API.getPlaylistMusic(currentPlaylistId, 0, 10, jwt)
+                var data : String = ""
+                if(currentPlaylistId != 0) {
+                    data = API.getPlaylistMusic(currentPlaylistId, 0, 10, jwt)
+                } else {
+                    data = API.getLikedMusic(10, jwt)
+                }
 
                 val arr = JSONArray(data)
                 val songList = mutableListOf<Song>()

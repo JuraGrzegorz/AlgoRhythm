@@ -164,9 +164,12 @@ fun Music() {
                 Log.e("LaunchedEffect", "In dispatcher")
                 val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
                 val jwt = sharedPref.getString("JWT", "") ?: ""
-
-                var data = API.getPlaylistMusic(currentPlaylistId, 0, 10, jwt)
-
+                var data : String = ""
+                if(currentPlaylistId != 0) {
+                    data = API.getPlaylistMusic(currentPlaylistId, 0, 10, jwt)
+                } else {
+                    data = API.getLikedMusic(10, jwt)
+                }
                 val arr = JSONArray(data)
                 val songList = mutableListOf<Song>()
                 for (i in 0 until arr.length()) {
@@ -401,36 +404,43 @@ fun Music() {
                     Log.e("NextTrackButton", "Inside coroutine")
                     try {
                         if(currentPlaylistId == -1) {
-                            Log.e("NextTrackFromPLaylist", "In -1 if")
-                            val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
-                            val jwt = sharedPref.getString("JWT", "") ?: ""
-                            val data: String = API.getProposedMusic(1, jwt)
-                            val arr = JSONArray(data)
-                            for (i in 0 until arr.length()) {
-                                val obj = arr.getJSONObject(i)
-                                val nextid = obj.getString("id")
-                                val nextTitle = obj.getString("title")
-                                val nextAuthor = obj.getString("artistName")
-                                val thumbnailData = obj.getString("thumbnailData")
-                                val nextViews = obj.getString("views")
-                                val nextLikes = obj.getString("likes")
-                                val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
-                                val nextBitmap =
-                                    BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                            withContext(Dispatchers.IO) {
+                                Log.e("NextTrackFromPLaylist", "In -1 if")
+                                val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                                val jwt = sharedPref.getString("JWT", "") ?: ""
+                                val data: String = API.getProposedMusic(1, jwt)
+                                Log.e("NextTrackFromPLaylist", data)
+                                val arr = JSONArray(data)
+                                for (i in 0 until arr.length()) {
+                                    val obj = arr.getJSONObject(i)
+                                    val nextid = obj.getString("id")
+                                    val nextTitle = obj.getString("title")
+                                    val nextAuthor = obj.getString("artistName")
+                                    val thumbnailData = obj.getString("thumbnailData")
+                                    val nextViews = obj.getString("views")
+                                    val nextLikes = obj.getString("likes")
+                                    val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                                    val nextBitmap =
+                                        BitmapFactory.decodeByteArray(
+                                            imageBytes,
+                                            0,
+                                            imageBytes.size
+                                        )
+                                    Log.e("NextTrackFromPLaylist", "In for after getting data")
+                                    musicID = nextid
+                                    title = nextTitle
+                                    author = nextAuthor
+                                    views = nextViews
+                                    likes = nextLikes
+                                    bitmap = nextBitmap
 
-                                musicID = nextid
-                                title = nextTitle
-                                author = nextAuthor
-                                views = nextViews
-                                likes = nextLikes
-                                bitmap = nextBitmap
-
-                                withContext(Dispatchers.Main) {
-                                    // Send command to the service to play the next track
-                                    sendCommandToService(
-                                        ForegroundService.ACTION_START,
-                                        "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
-                                    )
+                                    withContext(Dispatchers.Main) {
+                                        // Send command to the service to play the next track
+                                        sendCommandToService(
+                                            ForegroundService.ACTION_START,
+                                            "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+                                        )
+                                    }
                                 }
                             }
                         } else {
