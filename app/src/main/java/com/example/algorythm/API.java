@@ -51,35 +51,31 @@ public class API {
             return response.body().string();
         }
     }
-    public static boolean forgotPassword(String email,String jwt) throws IOException {
+    public static String forgotPassword(String email) throws IOException {
         String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Identity/forgotPassword";
         try{
             String requestBody = "{\"email\":\"" + email + "\"}";
-            String res = sendPostJWT(apiUrl,requestBody,jwt);
-            if (res.equals("User registered successfully."))
-                return true;
-            else
-                return false;
+            String res = sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN");
+            return res;
         }
         catch (Exception e){
-            return false;
+            return null;
         }
     }
-    public static boolean verifyForgotPasswordCode(String email,String code,String newPassword,String jwt) throws IOException {
-        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Identity/verifyForgotPasswordCode";
+    public static String verifyForgotPasswordCode(String email,String code,String newPassword) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Identity/ResetPassword";
         try{
             String requestBody = "{\"email\":\"" + email + "\"," +
                     "\"code\":\"" + code + "\","+
                     "\"newPassword\":\""+newPassword+"\""+ "}";
             System.out.println(requestBody);
-            String res = sendPostJWT(apiUrl,requestBody,jwt);
-            if (res.equals("User registered successfully."))
-                return true;
-            else
-                return false;
+            String res = sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN");
+            return res;
         }
         catch (Exception e){
-            return false;
+            e.printStackTrace();
+            System.out.println("failed to verify");
+            return null;
         }
 
     }
@@ -363,6 +359,21 @@ public class API {
         }
     }
 
-
+    public static Map<String,String> googleTokenVerification(String token) throws IOException {
+        String apiUrl = "https://thewebapiserver20240424215817.azurewebsites.net/Identity/LoginByGoogle";
+        try{
+            String requestBody = "{\"token\":\"" + token + "\"}";
+            Map<String,String> res = new HashMap<>();
+            String ress = sendPostJWT(apiUrl,requestBody,"NONE.JWT.TOKEN");
+            res.put("token",extractToken(ress));
+            res.put("username",extractUsername(ress));
+            return res;
+        }
+        catch (Exception e){
+            System.out.println(e);
+            System.out.println("FAILED TO LOGIN");
+            return null;
+        }
+    }
 
 }

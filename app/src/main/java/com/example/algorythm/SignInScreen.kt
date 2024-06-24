@@ -36,15 +36,23 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.navigation.NavController
 import com.example.algorythm.ui.theme.BackgroundDarkGray
 import com.example.algorythm.ui.theme.MainTheme
 import com.example.algorythm.ui.theme.PurpleGrey40
 import com.example.algorythm.ui.theme.PurpleGrey80
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.security.MessageDigest
+import java.util.UUID
 
 @Composable
 fun SignInScreen(navController: NavController) {
@@ -76,7 +84,7 @@ fun SignInScreen(navController: NavController) {
                     withContext(Dispatchers.Main) {
                         if (loggedin) {
                             val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
-                            with (sharedPref.edit()) {
+                            with(sharedPref.edit()) {
                                 putString("JWT", map["token"])
                                 putString("username", map["username"])
                                 apply()
@@ -149,7 +157,7 @@ fun SignInScreen(navController: NavController) {
             onClick = {
                 performLogin()
 //                navController.navigate(Screens.Home.screen)
-                      },
+            },
             colors = ButtonColors(
                 containerColor = MainTheme,
                 contentColor = Color.White,
@@ -188,7 +196,86 @@ fun SignInScreen(navController: NavController) {
             contentDescription = "Google",
             modifier = Modifier
                 .size(60.dp)
-                .clickable { /*TODO*/ }
+                .clickable {
+                    val credentialManager = CredentialManager.create(context)
+                    val rawNounce = UUID
+                        .randomUUID()
+                        .toString()
+                    val bytes = rawNounce.toByteArray()
+                    val md = MessageDigest.getInstance("SHA-256")
+                    val digest = md.digest(bytes)
+                    val hashedNounce = digest.fold("") { str, it -> str + "%02x".format(it) }
+
+                    val googleIdOption: GetGoogleIdOption = GetGoogleIdOption
+                        .Builder()
+                        .setFilterByAuthorizedAccounts(false)
+                        .setServerClientId("864690848376-prjgp8h699v4np8cpne2t89imqfhqv2h.apps.googleusercontent.com")
+                        .setNonce(hashedNounce)
+                        .build()
+
+                    val request: GetCredentialRequest = GetCredentialRequest
+                        .Builder()
+                        .addCredentialOption(googleIdOption)
+                        .build()
+
+                    coroutineScope.launch {
+
+                        try {
+                            val result = credentialManager.getCredential(
+                                request = request,
+                                context = context
+                            )
+                            val credential = result.credential
+
+                            val googleIdTokenCredential = GoogleIdTokenCredential
+                                .createFrom(credential.data)
+
+                            val googleIdToken = googleIdTokenCredential.idToken
+
+                            withContext(Dispatchers.IO) {
+                                try {
+
+                                    val map = API.googleTokenVerification(googleIdToken)
+                                    loggedin = !map.isNullOrEmpty()
+                                    withContext(Dispatchers.Main) {
+                                        if (loggedin) {
+                                            val sharedPref =
+                                                activity.getPreferences(Context.MODE_PRIVATE)
+                                            with(sharedPref.edit()) {
+                                                putString("JWT", map["token"])
+                                                putString("username", map["username"])
+                                                apply()
+                                            }
+                                            navController.navigate(Screens.Home.screen)
+                                        } else {
+                                            Toast
+                                                .makeText(
+                                                    context,
+                                                    "Login failed. Please check your credentials.",
+                                                    Toast.LENGTH_SHORT
+                                                )
+                                                .show()
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    withContext(Dispatchers.Main) {
+                                        Toast
+                                            .makeText(
+                                                context,
+                                                "An error occurred: ${e.message}",
+                                                Toast.LENGTH_SHORT
+                                            )
+                                            .show()
+                                    }
+                                }
+                            }
+                        } catch (e: GetCredentialException) {
+                            Log.e("credenitalEx", e.toString())
+                        } catch (e: GoogleIdTokenParsingException) {
+                            Log.e("googleparsEx", e.toString())
+                        }
+                    }
+                }
         )
     }
 }

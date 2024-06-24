@@ -22,6 +22,9 @@ okhttp="4.11.0"
 okhttpVersion = "5.0.0-alpha.14"
 mediaWidget = "1.0.0-alpha06"
 media3Session = "1.3.1"
+credentials = "1.2.2"
+credentialsPlayServicesAuth = "1.2.2"
+googleid = "1.1.0"
 
 
 [libraries]
@@ -53,6 +56,9 @@ log4j-core = { group = "org.apache.logging.log4j", name = "log4j-core", version.
 okhttp3-okhttp = { group = "com.squareup.okhttp3", name = "okhttp", version.ref = "okhttpVersion" }
 androidx-media-widget = { group = "androidx.media", name = "media-widget", version.ref = "mediaWidget" }
 androidx-media3-session = { group = "androidx.media3", name = "media3-session", version.ref = "media3Session" }
+androidx-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
+androidx-credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialsPlayServicesAuth" }
+googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
