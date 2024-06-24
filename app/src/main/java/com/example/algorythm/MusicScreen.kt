@@ -50,6 +50,7 @@ import kotlinx.coroutines.*
 import org.json.JSONArray
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.ui.text.input.TextFieldValue
+import currentPlaylistId
 import likes
 import musicID
 import org.json.JSONObject
@@ -76,6 +77,8 @@ fun Music() {
     var showInputDialog by remember { mutableStateOf(false) }
     var newPlaylistName by remember { mutableStateOf(TextFieldValue("")) }
     var isMusicLiked by remember { mutableStateOf(false) }
+    var songs by remember { mutableStateOf(mutableListOf<Song>()) }
+    var songsCopy by remember { mutableStateOf(mutableListOf<Song>()) }
 
     var musicID by remember { mutableStateOf(musicID) }
 
@@ -153,6 +156,49 @@ fun Music() {
             val jwt = sharedPref.getString("JWT", "") ?: ""
             isMusicLiked = API.isLiked(musicID, jwt)
             Log.e("isMusicLiked", isMusicLiked.toString())
+        }
+
+        if(currentPlaylistId != -1) {
+            Log.e("LaunchedEffect", "Inside if -1")
+            withContext(Dispatchers.IO) {
+                Log.e("LaunchedEffect", "In dispatcher")
+                val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                val jwt = sharedPref.getString("JWT", "") ?: ""
+
+                var data = API.getPlaylistMusic(currentPlaylistId, 0, 10, jwt)
+
+                val arr = JSONArray(data)
+                val songList = mutableListOf<Song>()
+                for (i in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(i)
+                    val songId = obj.getString("id")
+                    val title = obj.getString("title")
+                    val author = obj.getString("artistName")
+                    val thumbnailData = obj.getString("thumbnailData")
+                    val views = obj.getString("views")
+                    val likes = obj.getString("likes")
+                    val playlistId = currentPlaylistId
+                    val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                    val bitmap =
+                        BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                    songList.add(
+                        Song(
+                            songId,
+                            title,
+                            author,
+                            bitmap,
+                            views,
+                            likes,
+                            playlistId.toString()
+                        )
+                    )
+                }
+                Log.e("LaunchedEffect", "After for")
+                Log.e("LaunchedEffect", songList.toString())
+                songs = songList
+                Log.e("LaunchedEffect", songs.toString())
+                songsCopy = songList
+            }
         }
 
         savePlayedSong(context, PlayedSong(
@@ -350,30 +396,125 @@ fun Music() {
             Spacer(modifier = Modifier.width(10.dp))
             IconButton(onClick = {
                 /* Next track logic */
-                coroutineScope.launch(Dispatchers.IO) {
+                Log.e("NextTrackButton", "Outside coroutine")
+                coroutineScope.launch(Dispatchers.Main) {
+                    Log.e("NextTrackButton", "Inside coroutine")
                     try {
-                        val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
-                        val jwt = sharedPref.getString("JWT", "") ?: ""
-                        val data: String = API.getProposedMusic(1, jwt)
-                        val arr = JSONArray(data)
-                        for (i in 0 until arr.length()) {
-                            val obj = arr.getJSONObject(i)
-                            val nextid = obj.getString("id")
-                            val nextTitle = obj.getString("title")
-                            val nextAuthor = obj.getString("artistName")
-                            val thumbnailData = obj.getString("thumbnailData")
-                            val nextViews = obj.getString("views")
-                            val nextLikes = obj.getString("likes")
-                            val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
-                            val nextBitmap =
-                                BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                        if(currentPlaylistId == -1) {
+                            Log.e("NextTrackFromPLaylist", "In -1 if")
+                            val sharedPref = activity.getPreferences(Context.MODE_PRIVATE)
+                            val jwt = sharedPref.getString("JWT", "") ?: ""
+                            val data: String = API.getProposedMusic(1, jwt)
+                            val arr = JSONArray(data)
+                            for (i in 0 until arr.length()) {
+                                val obj = arr.getJSONObject(i)
+                                val nextid = obj.getString("id")
+                                val nextTitle = obj.getString("title")
+                                val nextAuthor = obj.getString("artistName")
+                                val thumbnailData = obj.getString("thumbnailData")
+                                val nextViews = obj.getString("views")
+                                val nextLikes = obj.getString("likes")
+                                val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                                val nextBitmap =
+                                    BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
-                            musicID = nextid
-                            title = nextTitle
-                            author = nextAuthor
-                            views = nextViews
-                            likes = nextLikes
-                            bitmap = nextBitmap
+                                musicID = nextid
+                                title = nextTitle
+                                author = nextAuthor
+                                views = nextViews
+                                likes = nextLikes
+                                bitmap = nextBitmap
+
+                                withContext(Dispatchers.Main) {
+                                    // Send command to the service to play the next track
+                                    sendCommandToService(
+                                        ForegroundService.ACTION_START,
+                                        "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
+                                    )
+                                }
+                            }
+                        } else {
+                            var indexToRemove = songs.indexOfFirst { it.id == musicID }
+                            if (indexToRemove != -1){
+                                songs.removeAt(indexToRemove)
+                                if(songs.size != 0) {
+                                    musicID = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].id
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].id
+                                    }
+                                    title = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].title
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].title
+                                    }
+                                    author = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].author
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].author
+                                    }
+                                    views = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].views
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].views
+                                    }
+                                    likes = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].likes
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].likes
+                                    }
+                                    bitmap = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].thumbnail
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].thumbnail
+                                    }
+                                }
+                                else {
+                                    songs = songsCopy
+                                    musicID = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].id
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].id
+                                    }
+                                    title = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].title
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].title
+                                    }
+                                    author = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].author
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].author
+                                    }
+                                    views = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].views
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].views
+                                    }
+                                    likes = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].likes
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].likes
+                                    }
+                                    bitmap = if (indexToRemove < songs.size) {
+                                        songs[indexToRemove].thumbnail
+                                    } else {
+                                        indexToRemove = 0
+                                        songs[indexToRemove].thumbnail
+                                    }
+                                }
+                            }
 
                             withContext(Dispatchers.Main) {
                                 // Send command to the service to play the next track
@@ -382,6 +523,7 @@ fun Music() {
                                     "https://thewebapiserver20240424215817.azurewebsites.net/Music/GetMusicData?songId=$musicID"
                                 )
                             }
+
                         }
                     } catch (_: Exception) {
                     }

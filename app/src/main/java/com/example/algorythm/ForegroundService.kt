@@ -1,5 +1,6 @@
 package com.example.algorythm
 
+import Song
 import android.app.*
 import android.content.Context
 import android.content.Intent
@@ -22,7 +23,9 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 import android.util.Base64
 import androidx.compose.ui.platform.LocalContext
+import currentPlaylistId
 import kotlinx.coroutines.delay
+import musicID
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 private const val PLAYED_SONGS_PREFS = "played_songs_prefs"
@@ -36,6 +39,8 @@ class ForegroundService : Service() {
     private lateinit var notificationBuilder: NotificationCompat.Builder
     private lateinit var notificationManager: NotificationManager
     private val coroutineScope = CoroutineScope(Dispatchers.IO)
+    var songs: MutableList<Song> = mutableListOf()
+    var songsCopy: MutableList<Song> = mutableListOf()
 
     private val binder = LocalBinder()
 
@@ -88,6 +93,44 @@ class ForegroundService : Service() {
 
         // Ustawienie sesji do obsługi powiadomień
         mediaSession.isActive = true
+        //__________________________________
+        if(currentPlaylistId != -1) {
+            coroutineScope.launch {
+                val sharedPref = getSharedPreferences("MainActivity", Context.MODE_PRIVATE)
+                val jwt = sharedPref.getString("JWT", "") ?: ""
+
+                var data = API.getPlaylistMusic(currentPlaylistId, 0, 10, jwt)
+
+                val arr = JSONArray(data)
+                val songList = mutableListOf<Song>()
+                for (i in 0 until arr.length()) {
+                    val obj = arr.getJSONObject(i)
+                    val songId = obj.getString("id")
+                    val title = obj.getString("title")
+                    val author = obj.getString("artistName")
+                    val thumbnailData = obj.getString("thumbnailData")
+                    val views = obj.getString("views")
+                    val likes = obj.getString("likes")
+                    val playlistId = currentPlaylistId
+                    val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                    val bitmap =
+                        BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                    songList.add(
+                        Song(
+                            songId,
+                            title,
+                            author,
+                            bitmap,
+                            views,
+                            likes,
+                            playlistId.toString()
+                        )
+                    )
+                    songs = songList
+                    songsCopy = songList
+                }
+            }
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? {
@@ -225,37 +268,86 @@ class ForegroundService : Service() {
     private fun nextTrack() {
         coroutineScope.launch {
             try {
-                val sharedPref = getSharedPreferences("my_preferences", Context.MODE_PRIVATE)
-                val jwt = sharedPref.getString("JWT", "") ?: ""
-                val data: String = API.getProposedMusic(1, jwt)
-                val arr = JSONArray(data)
-                if (arr.length() > 0) {
-                    val obj = arr.getJSONObject(0)
-                    val nextId = obj.getString("id")
-                    val nextTitle = obj.getString("title")
-                    val nextAuthor = obj.getString("artistName")
-                    val thumbnailData = obj.getString("thumbnailData")
-                    val nextViews = obj.getString("views")
-                    val nextLikes = obj.getString("likes")
-                    val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
-                    val nextBitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
+                if (currentPlaylistId == -1) {
+                    val sharedPref = getSharedPreferences("MainActivity", Context.MODE_PRIVATE)
+                    val jwt = sharedPref.getString("JWT", "") ?: ""
+                    val data: String = API.getProposedMusic(1, jwt)
+                    val arr = JSONArray(data)
+                    if (arr.length() > 0) {
+                        val obj = arr.getJSONObject(0)
+                        val nextId = obj.getString("id")
+                        val nextTitle = obj.getString("title")
+                        val nextAuthor = obj.getString("artistName")
+                        val thumbnailData = obj.getString("thumbnailData")
+                        val nextViews = obj.getString("views")
+                        val nextLikes = obj.getString("likes")
+                        val imageBytes = Base64.decode(thumbnailData, Base64.DEFAULT)
+                        val nextBitmap =
+                            BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
-                    // Zaktualizuj odtwarzacz z nowym utworem
-                    playMusic(nextId) // assuming nextId is a URL or file path
+                        // Zaktualizuj odtwarzacz z nowym utworem
+                        playMusic(nextId) // assuming nextId is a URL or file path
 
-                    // Aktualizacja powiadomienia z nowymi metadanymi
+                        // Aktualizacja powiadomienia z nowymi metadanymi
+                        val metadata = MediaMetadataCompat.Builder()
+                            .putString(MediaMetadataCompat.METADATA_KEY_TITLE, nextTitle)
+                            .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, nextAuthor)
+                            .putLong(
+                                MediaMetadataCompat.METADATA_KEY_DURATION,
+                                mediaPlayer?.duration?.toLong() ?: 0L
+                            )
+                            .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, nextBitmap)
+                            .build()
+                        mediaSession.setMetadata(metadata)
+
+                        // Ustaw dane do powiadomienia
+                        notificationBuilder.setContentTitle(nextTitle)
+                            .setContentText(nextAuthor)
+                            .setLargeIcon(nextBitmap)
+
+                        // Aktualizacja powiadomienia
+                        updateNotification()
+                    }
+                } else {
+                    var indexToRemove = songs.indexOfFirst { it.id == musicID }
+
+                    if (indexToRemove != -1){
+                        songs.removeAt(indexToRemove)
+                        if(songs.size != 0) {
+                            musicID = if (indexToRemove < songs.size) {
+                                songs[indexToRemove].id
+                            } else {
+                                indexToRemove = 0
+                                songs[indexToRemove].id
+                            }
+                        }
+                        else {
+                            songs = songsCopy
+                            musicID = if (indexToRemove < songs.size) {
+                                songs[indexToRemove].id
+                            } else {
+                                indexToRemove = 0
+                                songs[indexToRemove].id
+                            }
+                        }
+                    }
+                    playMusic(musicID)
+
                     val metadata = MediaMetadataCompat.Builder()
-                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, nextTitle)
-                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, nextAuthor)
-                        .putLong(MediaMetadataCompat.METADATA_KEY_DURATION, mediaPlayer?.duration?.toLong() ?: 0L)
-                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, nextBitmap)
+                        .putString(MediaMetadataCompat.METADATA_KEY_TITLE, songs[indexToRemove].title)
+                        .putString(MediaMetadataCompat.METADATA_KEY_ARTIST, songs[indexToRemove].author)
+                        .putLong(
+                            MediaMetadataCompat.METADATA_KEY_DURATION,
+                            mediaPlayer?.duration?.toLong() ?: 0L
+                        )
+                        .putBitmap(MediaMetadataCompat.METADATA_KEY_ART, songs[indexToRemove].thumbnail)
                         .build()
                     mediaSession.setMetadata(metadata)
 
                     // Ustaw dane do powiadomienia
-                    notificationBuilder.setContentTitle(nextTitle)
-                        .setContentText(nextAuthor)
-                        .setLargeIcon(nextBitmap)
+                    notificationBuilder.setContentTitle(songs[indexToRemove].title)
+                        .setContentText(songs[indexToRemove].author)
+                        .setLargeIcon(songs[indexToRemove].thumbnail)
 
                     // Aktualizacja powiadomienia
                     updateNotification()

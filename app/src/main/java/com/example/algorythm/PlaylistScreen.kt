@@ -126,7 +126,8 @@ fun PlaylistScreen(navController: NavController, playlistName: String, id: Int) 
                         Image(
                             bitmap = it.asImageBitmap(),
                             contentDescription = null,
-                            modifier = Modifier.size(100.dp)
+                            modifier = Modifier
+                                .size(100.dp)
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(8.dp))
                         )
@@ -196,6 +197,7 @@ fun PlaylistScreen(navController: NavController, playlistName: String, id: Int) 
                         playlistId = id.toString(),
                         onClick = {
                             selectedSong = song
+                            currentPlaylistId = id;
                         },
                         onLongClick = {
                             songToRemove = song

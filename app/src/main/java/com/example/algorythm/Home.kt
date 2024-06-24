@@ -37,6 +37,7 @@ import kotlinx.coroutines.launch
 import org.json.JSONArray
 
 private const val songAmount = 10
+var currentPlaylistId = -1;
 var title = ""
 var author = ""
 var musicID = ""
@@ -156,6 +157,7 @@ fun Home(navController: NavHostController) {
                         playlistId = "null",
                         onClick = {
                             selectedSong = song
+                            currentPlaylistId = -1
                         },
                         onLongClick = {
 
@@ -191,7 +193,7 @@ fun Home(navController: NavHostController) {
 }
 
 data class Song(
-    val id: String,
+    var id: String,
     val title: String,
     val author: String,
     val thumbnail: Bitmap?,
