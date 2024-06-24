@@ -1,5 +1,7 @@
 package com.example.algorythm
 
+import android.content.Context
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -15,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,6 +33,9 @@ import com.example.algorythm.ui.theme.MainTheme
 import com.example.algorythm.ui.theme.PurpleGrey40
 import com.example.algorythm.ui.theme.PurpleGrey80
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 fun ResetPass1(navController: NavController) {
@@ -42,11 +48,18 @@ fun ResetPass1(navController: NavController) {
         mutableStateOf("")
     }
 
+    val coroutineScope = rememberCoroutineScope()
     Column(
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Text(text = "Provide email to reset password", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center)
+        Text(
+            text = "Provide email to reset password",
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            textAlign = TextAlign.Center
+        )
         Spacer(modifier = Modifier.height(10.dp))
         OutlinedTextField(
             value = email, onValueChange = { email = it },
@@ -64,11 +77,24 @@ fun ResetPass1(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                /* TODO */
-                if(forgotPassword(email,null))
-                {
-                    curremail = email
-                    navController.navigate(Screens.Reset2.screen)
+                coroutineScope.launch {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val check = forgotPassword(email)
+                            withContext(Dispatchers.Main){
+                                Log.e("check", check.toString() )
+                                if (check.equals("success")) {
+                                    curremail = email
+                                    navController.navigate(Screens.Reset2.screen)
+                                }
+                            }
+//                            withContext(Dispatchers.Main) {
+//                                navController.navigate(Screens.Reset2.screen)
+//                            }
+                        } catch (e: Exception) {
+                            Log.e("err", e.toString())
+                        }
+                    }
                 }
             },
             colors = ButtonColors(

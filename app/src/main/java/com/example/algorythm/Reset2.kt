@@ -1,5 +1,6 @@
 package com.example.algorythm
 
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -113,19 +114,43 @@ fun ResetPass2(navController: NavController) {
         Button(
             onClick = {
                 /* TODO */
-                if(password.equals(passwordConfirmation))
-                {
-                    verifyForgotPasswordCode(curremail,code,password,null)
-                    navController.navigate(Screens.SignInScreen.screen)
+                coroutineScope.launch {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val check =  verifyForgotPasswordCode(curremail,code,password)
+                            withContext(Dispatchers.Main){
+                                Log.e("check", check.toString() )
+//                                if (!check.isNullOrEmpty()) {
+                                    navController.navigate(Screens.SignInScreen.screen)
+//                                }
+//                                else
+//                                {
+//                                    Toast.makeText(
+//                                        context,
+//                                        "Please check your credentials.",
+//                                        Toast.LENGTH_SHORT
+//                                    ).show()
+//                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e("err", e.toString())
+                        }
+                    }
                 }
-                else
-                {
-                    Toast.makeText(
-                        context,
-                        "Please check your credentials.",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+
+//                if(password == passwordConfirmation)
+//                {
+//                    verifyForgotPasswordCode(curremail,code,password)
+//                    navController.navigate(Screens.SignInScreen.screen)
+//                }
+//                else
+//                {
+//                    Toast.makeText(
+//                        context,
+//                        "Please check your credentials.",
+//                        Toast.LENGTH_SHORT
+//                    ).show()
+//                }
 
             },
             colors = ButtonColors(
@@ -141,8 +166,15 @@ fun ResetPass2(navController: NavController) {
         Spacer(modifier = Modifier.height(20.dp))
         Button(
             onClick = {
-                      forgotPassword(curremail,null)
-//                navController.navigate(Screens.SignInScreen.screen)
+                coroutineScope.launch {
+                    withContext(Dispatchers.IO) {
+                        try {
+                            val check = forgotPassword(curremail)
+                        } catch (e: Exception) {
+                            Log.e("err", e.toString())
+                        }
+                    }
+                }
             },
             colors = ButtonColors(
                 containerColor = MainTheme,
